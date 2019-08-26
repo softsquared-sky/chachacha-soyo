@@ -1,0 +1,64 @@
+CREATE TABLE guest
+(
+    `usernum`     INT             NOT NULL    AUTO_INCREMENT, 
+    `userid`      VARCHAR(45)     NOT NULL, 
+    `userpw`      VARCHAR(45)     NOT NULL, 
+    `name`        VARCHAR(45)     NOT NULL, 
+    `age`         INT             NOT NULL, 
+    `gender`      INT             NOT NULL, 
+    `email`       VARCHAR(200)    NOT NULL, 
+    `writing`     TEXT            NOT NULL, 
+    `signuptime`  TIMESTAMP       NOT NULL, 
+    PRIMARY KEY (usernum)
+);
+
+CREATE TABLE boss
+(
+    `bossnum`     INT            NOT NULL    AUTO_INCREMENT, 
+    `bossid`      VARCHAR(45)    NOT NULL, 
+    `bosspw`      VARCHAR(45)    NOT NULL, 
+    `bossname`    VARCHAR(45)    NOT NULL, 
+    `bossphone`   VARCHAR(45)    NOT NULL, 
+    `signuptime`  TIMESTAMP      NOT NULL, 
+    PRIMARY KEY (bossnum)
+);
+
+CREATE TABLE store
+(
+    `storenum`   INT              NOT NULL    AUTO_INCREMENT, 
+    `storename`  VARCHAR(45)      NOT NULL, 
+    `people`     INT              NOT NULL, 
+    `kind`       VARCHAR(45)      NOT NULL, 
+    `mode`       VARCHAR(2000)    NOT NULL, 
+    `address`    VARCHAR(1000)    NOT NULL, 
+    `opentime`   TIMESTAMP        NOT NULL, 
+    `closstime`  TIMESTAMP        NOT NULL, 
+    PRIMARY KEY (storenum)
+);
+
+CREATE TABLE review
+(
+    `reviewnum`   INT          NOT NULL    AUTO_INCREMENT, 
+    `usernum`     INT          NOT NULL, 
+    `storenum`    INT          NOT NULL, 
+    `text`        TEXT         NOT NULL, 
+    `star`        INT          NOT NULL, 
+    `reviewtime`  TIMESTAMP    NOT NULL, 
+    PRIMARY KEY (reviewnum)
+);
+CREATE TABLE bookmark
+(
+    `marknum`   INT    NOT NULL    AUTO_INCREMENT, 
+    `usernum`   INT    NOT NULL, 
+    `storenum`  INT    NOT NULL, 
+    PRIMARY KEY (marknum)
+);
+
+CREATE TABLE menu
+(
+    `storenum`   INT            NOT NULL    AUTO_INCREMENT, 
+    `kindnum`    INT            NOT NULL //   COMMENT '주류, 안주류', 
+    `menuname`   VARCHAR(45)    NOT NULL, 
+    `menuprice`  VARCHAR(45)    NOT NULL, 
+    PRIMARY KEY (storenum)
+);
