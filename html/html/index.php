@@ -11,15 +11,16 @@ date_default_timezone_set('Asia/Seoul');
 ini_set('default_charset', 'utf8mb4');
 
 //에러출력하게 하는 코드
-//error_reporting(E_ALL); ini_set("display_errors", 1);
+error_reporting(E_ALL); ini_set("display_errors", 1);
 
 //Main Server API
 $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) {
     /* ******************   Test   ****************** */
     $r->addRoute('GET', '/', ['IndexController', 'index']);
-    $r->addRoute('POST', '/guest', ['IndexController', 'signup_guest']); //손님 회원가입 API
-    $r->addRoute('POST', '/boss', ['IndexController', 'signup_boss']); //사장님 회원가입 API
-    $r->addRoute('GET', '/user', ['IndexController', 'login_user']); // 로그인 API
+    $r->addRoute('POST', '/guest', ['IndexController', 'signupGuest']); //손님 회원가입 API
+    $r->addRoute('POST', '/boss', ['IndexController', 'signupBoss']); //사장님 회원가입 API
+    $r->addRoute('GET', '/user/{userId}', ['IndexController', 'loginUser']); // 로그인 API
+    $r->addRoute('GET', '/user/{userId}/myPage', ['MainController', 'myPage']); //마이페이지 조히 API
 
     $r->addRoute('GET', '/test/{testNo}', ['IndexController', 'testDetail']);
     $r->addRoute('POST', '/test', ['IndexController', 'testPost']);

@@ -28,7 +28,7 @@ try
          * API Name : 테스트 API
          * 마지막 수정 날짜 : 19.04.29
          */
-        case "signup_guest":
+        case "signupGuest":
 
             $usernum = 0;
             $signuptime = date("Y-m-d H:i:s");
@@ -153,7 +153,7 @@ try
 
             break;
 
-        case "signup_boss":
+        case "signupBoss":
 
             $usernum = 0;
             $signuptime = date("Y-m-d H:i:s");
@@ -290,7 +290,7 @@ try
              * 마지막 수정 날짜 : 19.04.29
              */
 
-            case 'login_user': // 로그인 API
+            case 'loginUser': // 로그인 API
 
                 $userid = $req->userid;
                 $userpw = $req->userpw;
@@ -339,6 +339,22 @@ try
 
                 break;
 
+        case "myPage":
+
+            $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
+//            echo "$jwt";
+            // jwt 유효성 검사
+            $result = isValidHeader($jwt, JWT_SECRET_KEY);
+            $intval = $result['intval'];
+            $userid = $result['userid'];
+
+            echo "$intval , $userid";
+
+//            $usernum =convert_to_num($userid);
+//
+//            $result = myPage($usernum);
+
+            break;
 
         case "testDetail":
 //

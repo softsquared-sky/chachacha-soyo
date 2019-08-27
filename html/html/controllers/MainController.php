@@ -37,6 +37,45 @@ try {
          * API Name : JWT 생성 테스트 API
          * 마지막 수정 날짜 : 19.04.25
          */
+
+        case "myPage":
+
+            $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
+//            echo "$jwt";
+            // jwt 유효성 검사
+            $result = isValidHeader($jwt, JWT_SECRET_KEY);
+            $intval = $result['intval'];
+            $userid = $result['userid'];
+
+            if ($intval === 0) //토큰 검증 여부
+            {
+                $res->isSuccess = FALSE;
+                $res->code = 201;
+                $res->message = "유효하지 않은 토큰입니다";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+            else if ($intval === 1)
+            {
+//                echo "$intval , $userid";
+
+                $usernum =convert_to_num($userid);
+//                echo "$usernum";
+
+                $res->result = myPage($usernum); // 토큰 발행 api
+                $res->isSuccess = TRUE;
+                $res->code = 115;
+                $res->message = "마이페이지 조회를 성공했습니다";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+
+//                echo json_encode($result);
+            }
+
+
+
+            break;
+
         case "createJwt":
             // jwt 유효성 검사
             if (!isValidHeader($jwt, JWT_SECRET_KEY)) {

@@ -1,5 +1,20 @@
 <?php
 
+function convert_to_num($userid)
+{
+    $pdo = pdoSqlConnect();
+    $query = "SELECT usernum FROM guest WHERE userid = ?;";
+    $st = $pdo->prepare($query);
+    $st -> execute([$userid]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st=null;
+    $pdo = null;
+
+    return intval($res[0]["usernum"]);
+}
+
+
 //READ
 function guest($usernum, $userid, $userpw, $name, $age, $gender, $email, $signuptime)
 {
@@ -74,6 +89,23 @@ function login($userid, $userpw)
 
 }
 
+function myPage($usernum)
+{
+    $pdo = pdoSqlConnect();
+    $query = "select name, writing, email, ( SELECT DATE_FORMAT(signuptime, '%Y.%m.%d')) signuptime  from guest where usernum = ?;";
+//    echo "$query";
+    $st = $pdo->prepare($query);
+    $st -> execute([$usernum]);
+//        $st->execute();
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res;
+
+}
 
 function guestPost()
 {
@@ -118,6 +150,26 @@ function testPost($name)
     $st = null;
     $pdo = null;
 
+}
+
+function isValidJWToken($userid, $userpw)
+{
+
+    $pdo = pdoSqlConnect();
+//        echo "현재 로그인한 유저 아이디: $userid";
+//        echo "pw : $userpw";
+    $query = "SELECT EXISTS(SELECT * FROM guest WHERE userid = ? and userpw = ?) AS exist";
+//        echo $query;
+    $st = $pdo->prepare($query);
+    //    $st->execute([$param,$param]);
+    $st->execute([$userid, $userpw]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st=null;
+    $pdo = null;
+
+    return array("intval"=>intval($res[0]["exist"]), "userid"=>$userid);
 }
 
 // CREATE
