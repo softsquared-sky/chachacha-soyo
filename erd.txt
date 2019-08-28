@@ -7,32 +7,33 @@ CREATE TABLE guest
     `age`         INT             NOT NULL, 
     `gender`      INT             NOT NULL, 
     `email`       VARCHAR(200)    NOT NULL, 
-    `writing`     TEXT            NOT NULL, 
-    `signuptime`  TIMESTAMP       NOT NULL, 
+    `writing`     TEXT             NULL, 
+    'phone'      TEXT	 NULL,
+    `signuptime`  TIMESTAMP       NOT NULL  DEFAULT  CURRENT_TIMESTAMP, 
     PRIMARY KEY (usernum)
 );
 
 CREATE TABLE boss
 (
-    `bossnum`     INT            NOT NULL    AUTO_INCREMENT, 
-    `bossid`      VARCHAR(45)    NOT NULL, 
-    `bosspw`      VARCHAR(45)    NOT NULL, 
-    `bossname`    VARCHAR(45)    NOT NULL, 
-    `bossphone`   VARCHAR(45)    NOT NULL, 
-    `signuptime`  TIMESTAMP      NOT NULL, 
-    PRIMARY KEY (bossnum)
+    `usernum`     INT            NOT NULL    AUTO_INCREMENT, 
+    `userid`      VARCHAR(45)    NOT NULL, 
+    `userpw`      VARCHAR(45)    NOT NULL, 
+    `username`    VARCHAR(45)    NOT NULL, 
+    `userphone`   VARCHAR(100)    NOT NULL, 
+    `signuptime`  TIMESTAMP      NOT NULL  DEFAULT  CURRENT_TIMESTAMP, 
+    PRIMARY KEY (usernum)
 );
 
 CREATE TABLE store
 (
-    `storenum`   INT              NOT NULL    AUTO_INCREMENT, 
-    `storename`  VARCHAR(45)      NOT NULL, 
-    `people`     INT              NOT NULL, 
-    `kind`       VARCHAR(45)      NOT NULL, 
-    `mode`       VARCHAR(2000)    NOT NULL, 
-    `address`    VARCHAR(1000)    NOT NULL, 
-    `opentime`   TIMESTAMP        NOT NULL, 
-    `closstime`  TIMESTAMP        NOT NULL, 
+    `storenum`   INT              NOT NULL    AUTO_INCREMENT,
+    `storename`  VARCHAR(45)      NOT NULL,
+    `people`     INT              NOT NULL,
+    `kind`       VARCHAR(45)      NOT NULL,
+    `mode`       VARCHAR(2000)    NOT NULL,
+    `address`    VARCHAR(1000)    NOT NULL,
+    `opentime`   varchar(25)        NOT NULL,
+    `closstime`  varchar(25)        NOT NULL,
     PRIMARY KEY (storenum)
 );
 
