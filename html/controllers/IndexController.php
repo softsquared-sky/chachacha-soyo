@@ -40,15 +40,18 @@ try {
             $gender = $req->gender; //성별 0-> 여, 1 -> 남
             $age = $req->age; // 나이 0 -> 20대, 1-> 30대, 2-> 40대 , 3-> 50대
             $email = $req->email;
+            $phone = $req->phone;
 //            $witing = $req->witing;
 //            echo "$name";
 
+            $pattenPhone = "/^01[0-9]{8,9}$/"; // 핸드폰번호 형식
             $patterPw = '/^.*(?=^.{8,15}$)(?=.*\d)(?=.*[a-zA-Z])(?=.*[!@#$%^&+=]).*$/'; //영대/소문자, 숫자 및 특수문자 조합 비밀번호 8자리이상 15자리 이하
             $patterEmail = "/^[_\.0-9a-zA-Z-]+@([0-9a-zA-Z][0-9a-zA-Z-]+\.)+[a-zA-Z]{2,6}$/i"; // 이메일 형식
             $patterName = "/([^가-힣\x20])/"; //한글이름
 //            $patterName = "/[xA1-xFE][xA1-xFE]/"; //한글 이름
 
-            if (strlen($userid) > 0 and strlen($userpw) > 0 and strlen($userpw2) > 0 and strlen($gender) > 0 and strlen($name) > 0 and strlen($age) > 0 and strlen($email) > 0) {
+            if (strlen($userid) > 0 and strlen($userpw) > 0 and strlen($userpw2) > 0 and strlen($gender) > 0 and strlen($name) > 0 and strlen($age) > 0 and strlen($email) > 0 and strlen($phone) > 0)
+            {
                 $result = idcheck_guest($userid); // 아이디 중복 체크
 //              echo "result: $result";
 
@@ -72,12 +75,23 @@ try {
                                     if (preg_match($patterEmail, $email)) {
 //                                echo "이메일 알맞게 입력되었습니다";
 
-                                        http_response_code(200);
-                                        guest($usernum, $userid, $userpw, $name, $age, $gender, $email, $signuptime);
-                                        $res->isSuccess = TRUE;
-                                        $res->code = 100;
-                                        $res->message = "회원가입을 성공적으로 완료했습니다";
-                                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                                        if (preg_match($pattenPhone, $phone)) {
+//                                            echo "전화번호가 알맞게 입력되었습니다";
+                                            $phone = add_hyphen($phone);
+//                                            echo "$phone";
+                                            http_response_code(200);
+                                            guest($usernum, $userid, $userpw, $name, $age, $gender, $email, $phone, $signuptime);
+                                            $res->isSuccess = TRUE;
+                                            $res->code = 100;
+                                            $res->message = "회원가입을 성공적으로 완료했습니다";
+                                            echo json_encode($res, JSON_NUMERIC_CHECK);
+                                        }
+                                        else{
+                                            $res->isSuccess = false;
+                                            $res->code = 113;
+                                            $res->message = "핸드폰 번호 형식에 맞춰 입력해주세요";
+                                            echo json_encode($res, JSON_NUMERIC_CHECK);
+                                        }
                                     } else {
                                         $res->isSuccess = false;
                                         $res->code = 102;
@@ -143,6 +157,12 @@ try {
                 $res->message = "이메일을 엽력해주세요";
                 echo json_encode($res, JSON_NUMERIC_CHECK);
             }
+            else if (strlen($phone) < 1) {
+                $res->isSuccess = false;
+                $res->code = 114;
+                $res->message = "핸드폰 번호를 입력해주세요";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+            }
 
 
             break;
@@ -191,6 +211,8 @@ try {
 
                                     if (preg_match($pattenPhone, $phone))
                                     {
+                                        $phone = add_hyphen($phone);
+
                                         http_response_code(200);
                                         boss($usernum, $userid, $userpw, $name, $phone, $signuptime);
                                         $res->isSuccess = TRUE;

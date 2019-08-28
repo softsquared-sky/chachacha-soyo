@@ -1,12 +1,11 @@
 <?php
 
-function guest($usernum, $userid, $userpw, $name, $age, $gender, $email, $signuptime)
+function guest($usernum, $userid, $userpw, $name, $age, $gender, $email,$phone, $signuptime)
 {
     $pdo = pdoSqlConnect();
-    $query = "INSERT INTO guest (usernum, userid, userpw, name, age, gender, email, signuptime) VALUES (?,?,?,?,?,?,?,?);";
-//    echo "$query";
+    $query = "INSERT INTO guest (usernum, userid, userpw, name, age, gender, email, phone, signuptime) VALUES (?,?,?,?,?,?,?,?,?);";
     $st = $pdo->prepare($query);
-    $st->execute([$usernum, $userid, $userpw, $name, $age, $gender, $email, $signuptime]);
+    $st->execute([$usernum, $userid, $userpw, $name, $age, $gender, $email, $phone, $signuptime]);
 
     $st = null;
     $pdo = null;
@@ -16,7 +15,6 @@ function boss($usernum, $userid, $userpw, $name, $phone, $signuptime)
 {
     $pdo = pdoSqlConnect();
     $query = "INSERT INTO boss (usernum, userid, userpw, username, userphone, signuptime) VALUES (?,?,?,?,?,?);";
-//    echo "$query";
     $st = $pdo->prepare($query);
     $st->execute([$usernum, $userid, $userpw, $name, $phone, $signuptime]);
 
@@ -26,10 +24,8 @@ function boss($usernum, $userid, $userpw, $name, $phone, $signuptime)
 
 function idcheck_guest($userid)
 {
-//    echo "$userid";
     $pdo = pdoSqlConnect();
     $query = "select exists(SELECT * FROM guest WHERE userid = ?)as exist;";
-//    echo "$query";
     $st = $pdo->prepare($query);
 
     $st->execute([$userid]);
@@ -73,14 +69,25 @@ function login($userid, $userpw)
     return intval($res[0]["exist"]);
 }
 
+function add_hyphen($phone)
+{
+    $phone = preg_replace("/[^0-9]/", "", $phone);    // 숫자 이외 제거
+    if (substr($phone,0,2)=='02')
+        return preg_replace("/([0-9]{2})([0-9]{3,4})([0-9]{4})$/", "\\1-\\2-\\3", $phone);
+    else if (strlen($phone)=='8' && (substr($phone,0,2)=='15' || substr($phone,0,2)=='16' || substr($phone,0,2)=='18'))
+        // 지능망 번호이면
+        return preg_replace("/([0-9]{4})([0-9]{4})$/", "\\1-\\2", $phone);
+    else
+        return preg_replace("/([0-9]{3})([0-9]{3,4})([0-9]{4})$/", "\\1-\\2-\\3", $phone);
+}
+
+
 function myPage($usernum)
 {
     $pdo = pdoSqlConnect();
-    $query = "select name, writing, email, ( SELECT DATE_FORMAT(signuptime, '%Y.%m.%d')) signuptime  from guest where usernum = ?;";
-//    echo "$query";
+    $query = "select name, writing, email, phone, ( SELECT DATE_FORMAT(signuptime, '%Y.%m.%d')) signuptime  from guest where usernum = ?;";
     $st = $pdo->prepare($query);
     $st -> execute([$usernum]);
-//        $st->execute();
     $st->setFetchMode(PDO::FETCH_ASSOC);
     $res = $st->fetchAll();
     $st = null;
@@ -88,15 +95,15 @@ function myPage($usernum)
     return $res;
 }
 
-function patchMypage($usernum, $name, $writing, $email)
+function patchMypage($usernum, $name, $writing, $email, $phone)
 {
 //    echo "$usernum";
-//    echo "$name, $writing, $email";
+//    echo "$name, $writing, $email", $phone;
     $pdo = pdoSqlConnect();
-    $query = "UPDATE guest SET name = ?, writing  = ?,  email = ? WHERE usernum = ?;";
+    $query = "UPDATE guest SET name = ?, writing  = ?,  email = ?, phone = ? WHERE usernum = ?;";
     $st = $pdo->prepare($query);
 //    echo "$query";
-    $st->execute([$name, $writing, $email, $usernum]);
+    $st->execute([$name, $writing, $email, $phone,$usernum]);
     $st = null;
     $pdo = null;
 }

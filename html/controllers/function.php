@@ -77,15 +77,13 @@ function getTodayByTimeStamp()
     return date("Y-m-d H:i:s");
 }
 
-function getJWToken($email, $phone, $authNo, $secretKey)
+function getJWToken($userid,$userpw, $secretKey)
 {
     $data = array(
         'date' => (string)getTodayByTimeStamp(),
-        'email' => (string)$email,
-        'authNo' => (string)$authNo,
-        'phoneNo' => (string)$phone
+        'userid' => (string)$userid,
+        'userpw' => (string)$userpw
     );
-
 //    echo json_encode($data);
 
     return $jwt = JWT::encode($data, $secretKey);
