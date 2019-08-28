@@ -47,6 +47,8 @@ try {
             $intval = $result['intval'];
             $userid = $result['userid'];
 
+
+
             if ($intval === 0) //토큰 검증 여부
             {
                 $res->isSuccess = FALSE;
@@ -63,7 +65,7 @@ try {
                 $usernum =convert_to_num($userid);
 //                echo "$usernum";
 
-                $res->result = myPage($usernum); // 토큰 발행 api
+                $res->result = myPage($usernum);
                 $res->isSuccess = TRUE;
                 $res->code = 115;
                 $res->message = "마이페이지 조회를 성공했습니다";
@@ -71,10 +73,82 @@ try {
 
 //                echo json_encode($result);
             }
+            break;
 
+        case "patchMypage":
 
+            $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
+//            echo "$jwt";
+            // jwt 유효성 검사
+            $result = isValidHeader($jwt, JWT_SECRET_KEY);
+            $intval = $result['intval'];
+            $userid = $result['userid'];
+
+            $patterName = "/([^가-힣\x20])/"; //한글이름
+
+            if ($intval === 0) //토큰 검증 여부
+            {
+                $res->isSuccess = FALSE;
+                $res->code = 201;
+                $res->message = "유효하지 않은 토큰입니다";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+            else if($intval === 1)
+            {
+
+                $usernum =convert_to_num($userid);
+//                echo "$usernum";
+//                echo "토큰검증 성공";
+                $name = $req->name;
+                $writing = $req->writing;
+                $email = $req->email;
+
+//                echo "$name, $writing, $email";
+                if (strlen($usernum) > 0 and strlen($name) > 0 and strlen($writing) > 0 and strlen($email) > 0)
+                {
+                    if (!preg_match($patterName, $name))
+                    {
+                        patchMypage($usernum, $name, $writing, $email);
+                        $res->isSuccess = TRUE;
+                        $res->code = 118;
+                        $res->message = "마이페이지 수정을 성공했습니다";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                    }
+                    else
+                    {
+                        $res->isSuccess = false;
+                        $res->code = 105;
+                        $res->message = "이름을 한글로 제대로 입력해쉐요";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                    }
+                }
+                else if (strlen($name) < 1)
+                {
+                    $res->isSuccess = false;
+                    $res->code = 110;
+                    $res->message = "이름를 엽력해주세요";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                }
+                else if (strlen($writing) < 1)
+                {
+                    $res->isSuccess = false;
+                    $res->code = 119;
+                    $res->message = "소개글을 엽력해주세요";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                }
+                else if (strlen($email) < 1)
+                {
+                    $res->isSuccess = false;
+                    $res->code = 112;
+                    $res->message = "이메일을 엽력해주세요";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                }
+            }
 
             break;
+
 
         case "createJwt":
             // jwt 유효성 검사

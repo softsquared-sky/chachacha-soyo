@@ -107,6 +107,20 @@ function myPage($usernum)
 
 }
 
+function patchMypage($usernum, $name, $writing, $email)
+{
+//    echo "$usernum";
+//    echo "$name, $writing, $email";
+    $pdo = pdoSqlConnect();
+    $query = "UPDATE guest SET name = ?, writing  = ?,  email = ? WHERE usernum = ?;";
+    $st = $pdo->prepare($query);
+//    echo "$query";
+    $st->execute([$name, $writing, $email, $usernum]);
+    $st = null;
+    $pdo = null;
+
+}
+
 function guestPost()
 {
     $pdo = pdoSqlConnect();

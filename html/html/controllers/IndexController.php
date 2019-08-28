@@ -339,22 +339,16 @@ try
 
                 break;
 
-        case "myPage":
 
-            $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
-//            echo "$jwt";
-            // jwt 유효성 검사
-            $result = isValidHeader($jwt, JWT_SECRET_KEY);
-            $intval = $result['intval'];
-            $userid = $result['userid'];
-
-            echo "$intval , $userid";
-
-//            $usernum =convert_to_num($userid);
+//        case "test":
 //
-//            $result = myPage($usernum);
-
-            break;
+////            echo "Dddd";
+////            $_GET['userid'];
+////            echo "$userid";
+//
+//            echo 'test :  '.$_GET['userid'];
+//
+//                break;
 
         case "testDetail":
 //
