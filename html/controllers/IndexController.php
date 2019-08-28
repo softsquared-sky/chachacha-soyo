@@ -6,8 +6,7 @@ const JWT_SECRET_KEY = "TEST_KEYTEST_KEYTEST_KEYTEST_KEYTEST_KEYTEST_KEYTEST_KEY
 $res = (Object)Array();
 header('Content-Type: json');
 $req = json_decode(file_get_contents("php://input"));
-try
-{
+try {
     addAccessLogs($accessLogs, $req);
     switch ($handler) {
         case "index":
@@ -28,7 +27,9 @@ try
          * API Name : 테스트 API
          * 마지막 수정 날짜 : 19.04.29
          */
-        case "signup_guest":
+
+
+        case "signupGuest":
 
             $usernum = 0;
             $signuptime = date("Y-m-d H:i:s");
@@ -146,7 +147,7 @@ try
 
             break;
 
-        case "signup_boss":
+        case "signupBoss":
 
             $usernum = 0;
             $signuptime = date("Y-m-d H:i:s");
@@ -161,8 +162,8 @@ try
             $patterName = "/([^가-힣\x20])/"; //한글이름
 //            echo "test";
 //
-                if (strlen($userid) > 0 and strlen($userpw) > 0 and strlen($userpw2) > 0 and strlen($name) > 0 and strlen($phone) > 0)
-                {
+            if (strlen($userid) > 0 and strlen($userpw) > 0 and strlen($userpw2) > 0 and strlen($name) > 0 and strlen($phone) > 0)
+            {
 //                echo "t11est";
                 $result = idcheck_boss($userid);
                 if ($result === 1)
@@ -189,7 +190,7 @@ try
                                 {
 
                                     if (preg_match($pattenPhone, $phone))
-                                     {
+                                    {
                                         http_response_code(200);
                                         boss($usernum, $userid, $userpw, $name, $phone, $signuptime);
                                         $res->isSuccess = TRUE;
@@ -197,7 +198,7 @@ try
                                         $res->message = "회원가입을 성공적으로 완료했습니다";
                                         echo json_encode($res, JSON_NUMERIC_CHECK);
                                     }
-                                     else
+                                    else
                                     {
                                         $res->isSuccess = false;
                                         $res->code = 113;
@@ -233,61 +234,109 @@ try
                     }
                 }
 
-                }
-                else if (strlen($userid) < 1)
-                {
-                    $res->isSuccess = false;
-                    $res->code = 106;
-                    $res->message = "아이디를 엽력해주세요";
-                    echo json_encode($res, JSON_NUMERIC_CHECK);
-                }
-                else if (strlen($userpw) < 1)
-                {
-                    $res->isSuccess = false;
-                    $res->code = 107;
-                    $res->message = "비밀번호를 엽력해주세요";
-                    echo json_encode($res, JSON_NUMERIC_CHECK);
-                }
-                else if (strlen($userpw2) < 1)
-                {
-                    $res->isSuccess = false;
-                    $res->code = 108;
-                    $res->message = "비밀번호 반복을 엽력해주세요";
-                    echo json_encode($res, JSON_NUMERIC_CHECK);
-                }
-                else if (strlen($name) < 1)
-                {
+            }
+            else if (strlen($userid) < 1)
+            {
+                $res->isSuccess = false;
+                $res->code = 106;
+                $res->message = "아이디를 엽력해주세요";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+            }
+            else if (strlen($userpw) < 1)
+            {
+                $res->isSuccess = false;
+                $res->code = 107;
+                $res->message = "비밀번호를 엽력해주세요";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+            }
+            else if (strlen($userpw2) < 1)
+            {
+                $res->isSuccess = false;
+                $res->code = 108;
+                $res->message = "비밀번호 반복을 엽력해주세요";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+            }
+            else if (strlen($name) < 1)
+            {
 
-                    $res->isSuccess = false;
-                    $res->code = 110;
-                    $res->message = "이름을 입력해주세요";
-                    echo json_encode($res, JSON_NUMERIC_CHECK);
-                }
-                else if (strlen($phone) < 1)
-                {
-                    $res->isSuccess = false;
-                    $res->code = 114;
-                    $res->message = "핸드폰 번호를 입력해주세요";
-                    echo json_encode($res, JSON_NUMERIC_CHECK);
-                }
+                $res->isSuccess = false;
+                $res->code = 110;
+                $res->message = "이름을 입력해주세요";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+            }
+            else if (strlen($phone) < 1)
+            {
+                $res->isSuccess = false;
+                $res->code = 114;
+                $res->message = "핸드폰 번호를 입력해주세요";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+            }
 //
-                break;
+            break;
 
-            /*
-             * API No. 0
-             * API Name : 테스트 Path Variable API
-             * 마지막 수정 날짜 : 19.04.29
-             */
+        case 'loginUser': // 로그인 API
+            $userid = $req->userid;
+            $userpw = $req->userpw;
+            //                echo "$userid";
+//                echo "$userpw";
+            if (strlen($userid ) >  0 and strlen($userpw) > 0)
+            {
+                $reuslt = login($userid, $userpw);
+                if($reuslt === 1)
+                {
+                    $jwt = getJWToken($userid, $userpw, JWT_SECRET_KEY);
+                    $res->result->jwt = $jwt;  // 토큰 발행 api
+                    $res->isSuccess = TRUE;
+                    $res->code = 115;
+                    $res->message = "로그인을 성공적으로 완료했습니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                }
+                else if($reuslt === 0)
+                {
+                    $res->isSuccess = false;
+                    $res->code = 116;
+                    $res->message = "로그인이 실패하였습니다 아이디와 비밀번호를 알맞게 입력해주세요";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                }
+            }
+            else if (strlen($userid) <1)
+            {
+                $res->isSuccess = false;
+                $res->code = 106;
+                $res->message = "아이디를 엽력해주세요";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+            }
+            else if (strlen($userpw) < 1)
+            {
+                $res->isSuccess = false;
+                $res->code = 107;
+                $res->message = "비밀번호를 엽력해주세요";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+            }
 
+
+            break;
+
+        case "test":
+            http_response_code(200);
+            $res->result = test();
+            $res->isSuccess = TRUE;
+            $res->code = 100;
+            $res->message = "테스트 성공";
+            echo json_encode($res, JSON_NUMERIC_CHECK);
+            break;
+        /*
+         * API No. 0
+         * API Name : 테스트 Path Variable API
+         * 마지막 수정 날짜 : 19.04.29
+         */
         case "testDetail":
-//
-//            http_response_code(200);
-//            $res->result = testDetail($vars["testNo"]);
-//            $res->isSuccess = TRUE;
-//            $res->code = 100;
-//            $res->message = "테스트 성공";
-//            echo json_encode($res, JSON_NUMERIC_CHECK);
-
+            http_response_code(200);
+            $res->result = testDetail($vars["testNo"]);
+            $res->isSuccess = TRUE;
+            $res->code = 100;
+            $res->message = "테스트 성공";
+            echo json_encode($res, JSON_NUMERIC_CHECK);
             break;
         /*
          * API No. 0
@@ -295,15 +344,13 @@ try
          * 마지막 수정 날짜 : 19.04.29
          */
         case "testPost":
-
-//            http_response_code(200);
-//            $res->result = testPost($req->name);
-//            $res->isSuccess = TRUE;
-//            $res->code = 100;
-//            $res->message = "테스트 성공";
-//            echo json_encode($res, JSON_NUMERIC_CHECK);
-//            break;
-
+            http_response_code(200);
+            $res->result = testPost($req->name);
+            $res->isSuccess = TRUE;
+            $res->code = 100;
+            $res->message = "테스트 성공";
+            echo json_encode($res, JSON_NUMERIC_CHECK);
+            break;
     }
 } catch (\Exception $e) {
     return getSQLErrorException($errorLogs, $e, $req);

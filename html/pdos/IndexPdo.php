@@ -1,6 +1,5 @@
 <?php
 
-//READ
 function guest($usernum, $userid, $userpw, $name, $age, $gender, $email, $signuptime)
 {
     $pdo = pdoSqlConnect();
@@ -27,9 +26,12 @@ function boss($usernum, $userid, $userpw, $name, $phone, $signuptime)
 
 function idcheck_guest($userid)
 {
+//    echo "$userid";
     $pdo = pdoSqlConnect();
     $query = "select exists(SELECT * FROM guest WHERE userid = ?)as exist;";
+//    echo "$query";
     $st = $pdo->prepare($query);
+
     $st->execute([$userid]);
     $st->setFetchMode(PDO::FETCH_ASSOC);
     $res = $st->fetchAll();
@@ -56,18 +58,65 @@ function idcheck_boss($userid)
     return intval($res[0]["exist"]);
 }
 
+function login($userid, $userpw)
+{
+    $userid2 = $userid;
+    $userpw2 = $userpw;
+    $pdo = pdoSqlConnect();
+    $query = "select exists(select * from guest, boss where (guest.userid = ? and guest.userpw = ?) or (boss.userpw = ? and boss.userpw = ?) )as exist;";
+    $st = $pdo->prepare($query);
+    $st->execute([$userid, $userpw, $userid2, $userpw2]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st=null;
+    $pdo = null;
+    return intval($res[0]["exist"]);
+}
 
-function guestPost()
+function myPage($usernum)
 {
     $pdo = pdoSqlConnect();
-    $query = "INSERT INTO TEST_TB (name) VALUES (?);";
+    $query = "select name, writing, email, ( SELECT DATE_FORMAT(signuptime, '%Y.%m.%d')) signuptime  from guest where usernum = ?;";
+//    echo "$query";
+    $st = $pdo->prepare($query);
+    $st -> execute([$usernum]);
+//        $st->execute();
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st = null;
+    $pdo = null;
+    return $res;
+}
+
+function patchMypage($usernum, $name, $writing, $email)
+{
+//    echo "$usernum";
+//    echo "$name, $writing, $email";
+    $pdo = pdoSqlConnect();
+    $query = "UPDATE guest SET name = ?, writing  = ?,  email = ? WHERE usernum = ?;";
+    $st = $pdo->prepare($query);
+//    echo "$query";
+    $st->execute([$name, $writing, $email, $usernum]);
+    $st = null;
+    $pdo = null;
+}
+
+//READ
+function test()
+{
+    $pdo = pdoSqlConnect();
+    $query = "SELECT * FROM TEST_TB;";
 
     $st = $pdo->prepare($query);
-    $st->execute([]);
+    //    $st->execute([$param,$param]);
+    $st->execute();
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
 
     $st = null;
     $pdo = null;
 
+    return $res;
 }
 
 //READ
@@ -147,3 +196,38 @@ function testPost($name)
 //        return intval($res[0]["exist"]);
 //
 //    }
+
+function convert_to_num($userid)
+{
+    $pdo = pdoSqlConnect();
+    $query = "SELECT usernum FROM guest WHERE userid = ?;";
+    $st = $pdo->prepare($query);
+    $st -> execute([$userid]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st=null;
+    $pdo = null;
+
+    return intval($res[0]["usernum"]);
+}
+
+function isValidJWToken($userid, $userpw)
+{
+
+    $pdo = pdoSqlConnect();
+//        echo "현재 로그인한 유저 아이디: $userid";
+//        echo "pw : $userpw";
+    $query = "SELECT EXISTS(SELECT * FROM guest WHERE userid = ? and userpw = ?) AS exist";
+//        echo $query;
+    $st = $pdo->prepare($query);
+    //    $st->execute([$param,$param]);
+    $st->execute([$userid, $userpw]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st=null;
+    $pdo = null;
+
+    return array("intval"=>intval($res[0]["exist"]), "userid"=>$userid);
+}
+
