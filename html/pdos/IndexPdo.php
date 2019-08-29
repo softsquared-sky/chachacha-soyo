@@ -22,7 +22,24 @@ function boss($usernum, $userid, $userpw, $name, $phone, $signuptime)
     $pdo = null;
 }
 
-function idcheck_guest($userid)
+function emailcheckGuest($email)
+{
+    $pdo = pdoSqlConnect();
+    $query = "select exists(SELECT * FROM guest WHERE email = ?)as exist;";
+    $st = $pdo->prepare($query);
+
+    $st->execute([$email]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st=null;
+    $pdo = null;
+
+    return intval($res[0]["exist"]);
+}
+
+
+function idcheckGuest($userid)
 {
     $pdo = pdoSqlConnect();
     $query = "select exists(SELECT * FROM guest WHERE userid = ?)as exist;";
@@ -39,7 +56,7 @@ function idcheck_guest($userid)
 }
 
 
-function idcheck_boss($userid)
+function idcheckBoss($userid)
 {
     $pdo = pdoSqlConnect();
     $query = "select exists(SELECT * FROM boss WHERE userid = ?)as exist;";
@@ -69,7 +86,7 @@ function login($userid, $userpw)
     return intval($res[0]["exist"]);
 }
 
-function add_hyphen($phone)
+function addHyphen($phone)
 {
     $phone = preg_replace("/[^0-9]/", "", $phone);    // 숫자 이외 제거
     if (substr($phone,0,2)=='02')
@@ -92,7 +109,7 @@ function myPage($usernum)
     $res = $st->fetchAll();
     $st = null;
     $pdo = null;
-    return $res;
+    return $res[0];
 }
 
 function patchMypage($usernum, $name, $writing, $email, $phone)

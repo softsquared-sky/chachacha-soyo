@@ -22,10 +22,10 @@ try {
 //            echo "$jwt";
             // jwt 유효성 검사
             $result = isValidHeader($jwt, JWT_SECRET_KEY);
-            $intval = $result['intval'];
+            $isintval = $result['intval'];
             $userid = $result['userid'];
 
-            if ($intval === 0) //토큰 검증 여부
+            if ($isintval === 0) //토큰 검증 여부
             {
                 $res->isSuccess = FALSE;
                 $res->code = 201;
@@ -34,7 +34,7 @@ try {
                 addErrorLogs($errorLogs, $res, $req);
                 return;
             }
-            else if ($intval === 1)
+            else if ($isintval === 1)
             {
 //                echo "$intval , $userid";
                 $usernum =convert_to_num($userid);
@@ -55,14 +55,20 @@ try {
 //            echo "$jwt";
             // jwt 유효성 검사
             $result = isValidHeader($jwt, JWT_SECRET_KEY);
-            $intval = $result['intval'];
+            $isintval = $result['intval'];
             $userid = $result['userid'];
 
-            $patterName = "/([^가-힣\x20])/"; //한글이름
-            $pattenPhone = "/^01[0-9]{8,9}$/"; // 핸드폰번호 형식
-            $pattenWriting = "/^[가-힣a-zA-Z]+$/"; //소개글 형식 한글 영어만 가능
+            $name = $req->name;
+            $writing = $req->writing;
+            $email = $req->email;
+            $phone = $req->phone;
 
-            if ($intval === 0) //토큰 검증 여부
+            $patternName = "/([^가-힣\x20])/"; //한글이름
+            $patternPhone = "/^01[0-9]{8,9}$/"; // 핸드폰번호 형식
+//            $patternWriting = "/^[가-힣a-zA-Z]+$/"; //소개글 형식 한글 영어만 가능
+            $patternWriting = '/([\xEA-\xED][\x80-\xBF]{2}|[a-zA-Z0-9_ -])/'; //정규식 띄어쓰기 _ - 이거 넣기
+
+            if ($isintval === 0) //토큰 검증 여부
             {
                 $res->isSuccess = FALSE;
                 $res->code = 201;
@@ -71,86 +77,70 @@ try {
                 addErrorLogs($errorLogs, $res, $req);
                 return;
             }
-            else if($intval === 1)
+            else if($isintval === 1)
             {
                 $usernum =convert_to_num($userid);
 //                echo "$usernum";
 //                echo "토큰검증 성공";
-                $name = $req->name;
-                $writing = $req->writing;
-                $email = $req->email;
-                $phone = $req->phone;
 
 //                echo "$name, $writing, $email, $phone";
                 if (strlen($usernum) > 0 and strlen($name) > 0 and strlen($writing) > 0 and strlen($email) > 0 and strlen($phone) > 0)
                 {
-                    if (!preg_match($patterName, $name))
+                    if (!preg_match($patternName, $name))
                     {
-//                        if(preg_match($pattenWriting, $writing))
-//                        {
-                            if (preg_match($pattenPhone, $phone))
-                            {
-                                patchMypage($usernum, $name, $writing, $email, $phone);
-                                $res->isSuccess = TRUE;
-                                $res->code = 118;
-                                $res->message = "마이페이지 수정을 성공했습니다";
-                                echo json_encode($res, JSON_NUMERIC_CHECK);
-                            } else {
-                                $res->isSuccess = false;
-                                $res->code = 113;
-                                $res->message = "핸드폰 번호 형식에 맞춰 입력해주세요";
-                                echo json_encode($res, JSON_NUMERIC_CHECK);
-                            }
-//                        }
-//                        else
-//                        {
-//                            $res->isSuccess = false;
-//                            $res->code = 120;
-//                            $res->message = "소개글은 한글과 영어만 입력해주세요";
-//                            echo json_encode($res, JSON_NUMERIC_CHECK);
-//                        }
+//                        echo "이름을 알맞게 입력했습니다";
                     }
                     else
                     {
                         $res->isSuccess = false;
-                        $res->code = 105;
-                        $res->message = "이름을 한글로 제대로 입력해쉐요";
+                        $res->code = 103;
+                        $res->message = "이름을 한글로 제대로 입력하세요";
                         echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;
+                    }
+
+//                    echo "$writing";
+
+                    if(preg_match_all($patternWriting, $writing, $match))
+                    {
+//                          preg_match_all($patternWriting, $writing, $match);
+                          $writing = implode('', $match[0]);
+//                          echo "$writing";
+                    }
+                    else
+                        {
+                            $res->isSuccess = false;
+                            $res->code = 116;
+                            $res->message = "소개글은 한글과 영어만 입력해주세요";
+                            echo json_encode($res, JSON_NUMERIC_CHECK);
+                             return;
+                    }
+
+                    if (preg_match($patternPhone, $phone))
+                    {
+                        patchMypage($usernum, $name, $writing, $email, $phone);
+                        $res->isSuccess = TRUE;
+                        $res->code = 200;
+                        $res->message = "마이페이지 수정을 성공했습니다";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                    } else {
+                        $res->isSuccess = false;
+                        $res->code = 106;
+                        $res->message = "번호 형식에 맞춰 입력해주세요";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;
                     }
                 }
-                else if (strlen($name) < 1)
+                else if (strlen($usernum) < 1 or strlen($name) < 1 or strlen($writing) < 1 or strlen($email) < 1 or strlen($phone) < 1)
                 {
                     $res->isSuccess = false;
-                    $res->code = 110;
-                    $res->message = "이름를 엽력해주세요";
+                    $res->code = 109;
+                    $res->message = "모든 항목을 완전히 입력해주세요";
                     echo json_encode($res, JSON_NUMERIC_CHECK);
+                    return;
                 }
-                else if (strlen($writing) < 1)
-                {
-                    $res->isSuccess = false;
-                    $res->code = 119;
-                    $res->message = "소개글을 엽력해주세요";
-                    echo json_encode($res, JSON_NUMERIC_CHECK);
-                }
-                else if (strlen($email) < 1)
-                {
-                    $res->isSuccess = false;
-                    $res->code = 112;
-                    $res->message = "이메일을 엽력해주세요";
-                    echo json_encode($res, JSON_NUMERIC_CHECK);
-                }
-                else if (strlen($phone) < 1)
-                {
-                    $res->isSuccess = false;
-                    $res->code = 114;
-                    $res->message = "핸드폰 번호를 입력해주세요";
-                    echo json_encode($res, JSON_NUMERIC_CHECK);
-                }
-
             }
             break;
-
-
 
 
         case "validateJwt":

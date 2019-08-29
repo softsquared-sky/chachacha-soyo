@@ -6,6 +6,7 @@ require './vendor/autoload.php';
 use \Monolog\Logger as Logger;
 use Monolog\Handler\StreamHandler;
 
+//echo json_encode($_GET);
 date_default_timezone_set('Asia/Seoul');
 ini_set('default_charset', 'utf8mb4');
 
@@ -19,10 +20,10 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
     $r->addRoute('POST', '/guest', ['IndexController', 'signupGuest']); //손님 회원가입 API
     $r->addRoute('POST', '/boss', ['IndexController', 'signupBoss']); //사장님 회원가입 API
     $r->addRoute('POST', '/user/{userId}', ['IndexController', 'loginUser']); // 로그인 API
-    $r->addRoute('GET', '/user/{userId}/myPage', ['MainController', 'myPage']); //마이페이지 조히 API
-    $r->addRoute('PATCH', '/user/{userId}/myPage', ['MainController', 'patchMypage']); //마이페이지 수정 API
+    $r->addRoute('GET', '/user/{userId}', ['MainController', 'myPage']); //마이페이지 조히 API
+    $r->addRoute('PATCH', '/user/{userId}', ['MainController', 'patchMypage']); //마이페이지 수정 API
 
-//    $r->addRoute('GET', '/test', ['IndexController', 'test']);
+    $r->addRoute('GET', '/test', ['IndexController', 'test']);
 //    $r->addRoute('GET', '/test/{testNo}', ['IndexController', 'testDetail']);
 //    $r->addRoute('POST', '/test', ['IndexController', 'testPost']);
 //    $r->addRoute('GET', '/jwt', ['MainController', 'validateJwt']);
