@@ -125,6 +125,76 @@ function patchMypage($usernum, $name, $writing, $email, $phone)
     $pdo = null;
 }
 
+
+function  getStore($people, $kind, $mode)
+{
+    $r = '%';
+    $kind = $r.$kind.$r;
+    $mode = $r.$mode.$r;
+//    echo "$kind";
+//    echo "$mode";
+    $pdo = pdoSqlConnect();
+    $query = "select storename, mode ,storewwriting, imageurl from store where people = ? and kind LIKE ?  and mode LIKE ?;";
+//    echo "$query";
+    $st = $pdo->prepare($query);
+    $st->execute([$people, $kind, $mode]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st = null;
+    $pdo = null;
+
+    return $res;
+}
+
+function  myReview($usernum)
+{
+//    echo "$usernum";
+    $pdo = pdoSqlConnect();
+    $query = "select storename, reviewstore.star,address, reviewstore.text   from (SELECT storenum, text ,star FROM review where usernum = ?) reviewstore inner join store on reviewstore.storenum =  store.storenum";
+//    echo "$query";
+    $st = $pdo->prepare($query);
+    //    $st->execute([$param,$param]);
+    $st->execute([$usernum]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res;
+}
+
+function mybookMark($usernum)
+{
+    $pdo = pdoSqlConnect();
+    $query = "select storename,mode, storewriting from (SELECT storenum FROM bookmark where usernum = ?) resultstore inner join store on  resultstore.storenum = store.storenum;";
+    $st = $pdo->prepare($query);
+    //    $st->execute([$param,$param]);
+    $st->execute([$usernum]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res;
+}
+
+function storeDetail($storenum)
+{
+    $pdo = pdoSqlConnect();
+    $query = "select storename, mode, storewriting, address, opentime, closstime, imageurl from store where storenum = ?;";
+    $st = $pdo->prepare($query);
+    //    $st->execute([$param,$param]);
+    $st->execute([$storenum]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res;
+}
 //READ
 function test()
 {
@@ -144,13 +214,14 @@ function test()
 }
 
 //READ
-function testDetail($testNo)
+function testDetail($usernum)
 {
+    echo "$usernum";
     $pdo = pdoSqlConnect();
-    $query = "SELECT * FROM TEST_TB WHERE no = ?;";
+    $query = "SELECT * FROM guest WHERE usernum = ?;";
 
     $st = $pdo->prepare($query);
-    $st->execute([$testNo]);
+    $st->execute([$usernum]);
     //    $st->execute();
     $st->setFetchMode(PDO::FETCH_ASSOC);
     $res = $st->fetchAll();
@@ -158,7 +229,7 @@ function testDetail($testNo)
     $st = null;
     $pdo = null;
 
-    return $res[0];
+    return $res;
 }
 
 
@@ -221,12 +292,14 @@ function testPost($name)
 //
 //    }
 
-function convert_to_num($userid)
+function convert_to_num($userId)
 {
+//    echo "$userId";
     $pdo = pdoSqlConnect();
     $query = "SELECT usernum FROM guest WHERE userid = ?;";
+//    echo $query;
     $st = $pdo->prepare($query);
-    $st -> execute([$userid]);
+    $st -> execute([$userId]);
     $st->setFetchMode(PDO::FETCH_ASSOC);
     $res = $st->fetchAll();
     $st=null;

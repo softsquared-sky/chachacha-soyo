@@ -65,10 +65,7 @@ try {
                     echo json_encode($res, JSON_NUMERIC_CHECK);
                     return;
                 }
-                else if ($isresult === 0 and $isresult2 === 0)
-                {
-//                    echo "아이디가 중복되지 않습니다";
-                }
+
 
                 if ($isalreadyEmail === 1)
                 {
@@ -78,73 +75,58 @@ try {
                     echo json_encode($res, JSON_NUMERIC_CHECK);
                     return;
                 }
-                else if ($isalreadyEmail === 0)
-                {
-//                    echo "이메일이 중복되지 않습니다";
-                }
 
-                if (preg_match($patternId, $userid))
-                {
-                    echo "아이디가 알맞게 입력되었습니다";
-                }
-                else {
 
-                    $res->isSuccess = false;
+                if (!preg_match($patternId, $userid))
+                {
+                  $res->isSuccess = false;
                     $res->code = 110;
                     $res->message = "영/소문자,숫자 조합 4자리 이상 10자리 이하로 아이디를 입력하세요";
                     echo json_encode($res, JSON_NUMERIC_CHECK);
                     return;
                 }
 
-                if (!preg_match($patternName, $name))
-                {
-//                      echo "이름이 알맞게 입력되었습니다";
-                }
-                else {
 
-                    $res->isSuccess = false;
+                if (preg_match($patternName, $name))
+                {
+                     $res->isSuccess = false;
                     $res->code = 103;
                     $res->message = "이름을 한글로 제대로 입력하세요";
                     echo json_encode($res, JSON_NUMERIC_CHECK);
                     return;
                 }
 
-                if (preg_match($patternPw, $userpw))
+
+                if (!preg_match($patternPw, $userpw))
                 {
-//                       echo "비밀번호가 알맞게 입력되었습니다";
-                }
-                else
-                    {
-                    $res->isSuccess = false;
+                      $res->isSuccess = false;
                     $res->code = 104;
                     $res->message = "영대/소문자,숫자 및 특수문자 조합 8자리이상 15자리 이하로 비밀번호를 입력해주세요";
                     echo json_encode($res, JSON_NUMERIC_CHECK);
                     return;
                 }
 
-                if (preg_match($patternEmail, $email))
+
+                if (!preg_match($patternEmail, $email))
                 {
-//                       echo "이메일 알맞게 입력되었습니다";
-                }
-                else {
-                    $res->isSuccess = false;
+                      $res->isSuccess = false;
                     $res->code = 105;
                     $res->message = "잘못된 이메일 형식입니다";
                     echo json_encode($res, JSON_NUMERIC_CHECK);
                     return;
                 }
 
-                if (preg_match($patternPhone, $phone))
+
+                if (!preg_match($patternPhone, $phone))
                 {
-//                      echo "핸드폰 형식에 알맞게 입력되었습니다";
-                    $phone = addHyphen($phone);
-                }
-                else{
                     $res->isSuccess = false;
                     $res->code = 106;
                     $res->message = "번호 형식에 맞춰 입력해주세요";
                     echo json_encode($res, JSON_NUMERIC_CHECK);
                     return;
+                }
+                else {
+                    $phone = addHyphen($phone);
                 }
 
                if ($age < 0 )
@@ -156,11 +138,7 @@ try {
                    echo json_encode($res, JSON_NUMERIC_CHECK);
                    return;
                 }
-                else  if ($age <= 3)
-                {
-//                    echo "나이 형식에 알맞게 입력되었습니다";
-                }
-                else
+                else if ($age > 3)
                 {
 //                    echo "$age";
                     $res->isSuccess = false;
@@ -181,9 +159,6 @@ try {
                 }
                 else if ($gender <= 1)
                 {
-//                      echo "전화번호가 알맞게 입력되었습니다";
-
-//                    echo "$phone";
                     http_response_code(200);
                     guest($usernum, $userid, $userpw, $name, $age, $gender, $email, $phone, $signuptime);
                     $res->isSuccess = TRUE;
@@ -240,17 +215,9 @@ try {
                     echo json_encode($res, JSON_NUMERIC_CHECK);
                     return;
                 }
-                else if ($isresult === 0 and $isresult2 === 0)
-                {
-//                    echo "아이디가 중복되지 않습니다";
-                }
 
-                if (preg_match($patternId, $userid))
+                if (!preg_match($patternId, $userid))
                 {
-//                    echo "아이디가 알맞게 입력되었습니다";
-                }
-                else {
-
                     $res->isSuccess = false;
                     $res->code = 110;
                     $res->message = "영/소문자,숫자 조합 4자리 이상 10자리 이하로 아이디를 입력하세요";
@@ -258,12 +225,9 @@ try {
                     return;
                 }
 
-                if (!preg_match($patternName, $name))
-                {
-//                      echo "이름이 알맞게 입력되었습니다";
-                }
-                else {
 
+                if (preg_match($patternName, $name))
+                {
                     $res->isSuccess = false;
                     $res->code = 103;
                     $res->message = "이름을 한글로 제대로 입력하세요";
@@ -271,12 +235,8 @@ try {
                     return;
                 }
 
-                if (preg_match($patternPw, $userpw))
-                {
-//                      echo "비밀번호가 알맞게 입력되었습니다";
 
-                }
-                else
+                if (!preg_match($patternPw, $userpw))
                 {
                     $res->isSuccess = false;
                     $res->code = 104;
@@ -284,6 +244,7 @@ try {
                     echo json_encode($res, JSON_NUMERIC_CHECK);
                     return;
                 }
+
 
                 if (preg_match($patternPhone, $phone))
                 {
@@ -317,8 +278,6 @@ try {
             break;
 
         case 'loginUser': // 로그인 API
-
-//            echo json_encode($_GET);
 
             $userid = $req->userid;
             $userpw = $req->userpw;
@@ -366,8 +325,8 @@ try {
 
         case "test":
 
-            echo json_encode($_GET);
-
+//            echo json_encode($_GET);
+            $userid = $_GET['userid'];
             http_response_code(200);
 //            $get = $_GET["userid"];
 //            echo json_encode($get);
@@ -398,7 +357,7 @@ try {
          */
         case "testDetail":
             http_response_code(200);
-            $res->result = testDetail($vars["testNo"]);
+            $res->result = testDetail($vars["userid"]);
             $res->isSuccess = TRUE;
             $res->code = 100;
             $res->message = "테스트 성공";
