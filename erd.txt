@@ -59,6 +59,7 @@ CREATE TABLE review
     PRIMARY KEY (reviewnum)
 );
 
+
 CREATE TABLE bookmark
 (
     `marknum`   INT    NOT NULL    AUTO_INCREMENT, 
