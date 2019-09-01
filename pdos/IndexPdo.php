@@ -126,27 +126,78 @@ function patchMypage($usernum, $name, $writing, $email, $phone)
 }
 
 
-function  getStore($people, $strKind, $addedQuerykindreuslt, $strMode, $addedQuerymoderesult)
+function strNomatter($speople, $strKind, $addedQuerykindreuslt)
+{
+    $pdo = pdoSqlConnect();
+    $query = "SELECT storename, mode, storewriting, imageurl FROM store WHERE `people` = :speople AND `kind` LIKE (:Kind)";
+    if(!empty($strKind))
+    {
+        $query = $query.$addedQuerykindreuslt;
+    }
+//    echo "$query";
+    $st = $pdo->prepare($query);
+    $st->bindParam(':speople' , $speople, PDO::PARAM_INT);
+    foreach ($strKind as $value)
+    {
+        $st->bindValue(':Kind', $value, PDO::PARAM_STR );
+//        echo "$value";
+    }
+
+    $st->execute();
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st = null;
+    $pdo = null;
+//
+    return $res;
+}
+
+function  getStore($speople, $strKind, $addedQuerykindreuslt, $strMode, $addedQuerymoderesult)
 {
 
     $pdo = pdoSqlConnect();
-    $query = "select storename, mode ,storewriting, imageurl from store where people = ? and (kind LIKE ? $addedQuerykindreuslt) and (mode LIKE ? $addedQuerymoderesult);";
-    echo "$query";
-//    $st = $pdo->prepare($query);
+    $query = "SELECT storename, mode, storewriting, imageurl FROM store WHERE `people` = :speople AND `kind` LIKE (:Kind) AND `mode` LIKE (:Mode)";
+    if(!empty($strKind))
+    {
+        $query = $query.$addedQuerykindreuslt;
+    }
+    $st = $pdo->prepare($query);
+    $st->bindParam(':speople' , $speople, PDO::PARAM_INT);
+    foreach ($strKind as $value)
+    {
+        $st->bindValue(':Kind', $value, PDO::PARAM_STR );
+    }
+    foreach ($strMode as $value)
+    {
+        $st->bindValue(':Mode', $value, PDO::PARAM_STR );
+    }
 
-//    foreach($strKind as $value){
-////        $query->bindValue($value);
-//        echo "value = $value";
-//    }
-//    $query->execute();
-//    $st = $pdo->prepare($query);
-//    $st->execute([$people, array($strKind), array($strMode)]);
-//    $st->setFetchMode(PDO::FETCH_ASSOC);
-//    $res = $st->fetchAll();
-//    $st = null;
-//    $pdo = null;
+    $st->execute();
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st = null;
+    $pdo = null;
 //
-//    return $res;
+    return $res;
+}
+
+function test($people)
+{
+    $pdo = pdoSqlConnect();
+    $query = "SELECT * FROM store where people = :people;";
+
+    $st = $pdo->prepare($query);
+//        $st->execute([$param,$param]);
+    $st->bindParam(':people' , $people, PDO::PARAM_INT);
+//    $st -> bindParam(1, $_GET['image_id'], PDO::PARAM_INT);
+    $st->execute();
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res;
 }
 
 function  myReview($usernum)
@@ -196,6 +247,7 @@ function storeDetail($storenum)
 
     $st = null;
     $pdo = null;
+
     $phone = $res[0]['phone'];
     $phone = addHyphen($phone);
     $res[0]['phone'] = $phone;
@@ -236,23 +288,38 @@ function storeReview($storenum)
 
     return array("reviewcount" =>  $res, "review" => $res2);
 }
-//READ
-function test()
+
+
+function storeMenu($storenum)
 {
     $pdo = pdoSqlConnect();
-    $query = "SELECT * FROM TEST_TB;";
-
+    $query = " select menuname, menuprice from menu where storenum = ? and kindnum = 0;";
+//    echo "$query";
     $st = $pdo->prepare($query);
     //    $st->execute([$param,$param]);
-    $st->execute();
+    $st->execute([$storenum]);
     $st->setFetchMode(PDO::FETCH_ASSOC);
     $res = $st->fetchAll();
 
     $st = null;
     $pdo = null;
 
-    return $res;
+     $pdo = pdoSqlConnect();
+    $query = " select menuname, menuprice from menu where storenum = ? and kindnum = 1;";
+//    echo "$query";
+    $st = $pdo->prepare($query);
+    //    $st->execute([$param,$param]);
+    $st->execute([$storenum]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res2 = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return array('food' =>$res , "drink" => $res2);
 }
+//READ
+
 
 //READ
 function testDetail($usernum)

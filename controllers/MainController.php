@@ -208,7 +208,7 @@ try {
 
             break;
 
-        case "searchingStore":
+        case "searchingStore": //차차차 마이차차차했던 가게들은 검색 x
 
 
             $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
@@ -253,8 +253,15 @@ try {
                     return;
                 } else {
                     $strKind = explode(" ", $kind);
-                    echo json_encode($strKind);
+//                    echo json_encode($strKind);
                     $countKind = count($strKind);
+
+                    foreach ($strKind as $key => &$value) {
+                        $r = '%';
+                        $kindValue = $r . $value . $r;
+                        $value = $kindValue;
+                    }
+//                    echo json_encode($strKind);
                 }
 
                 if (preg_match($patternMode, $mode)) {
@@ -268,7 +275,7 @@ try {
                         $mode = str_replace("#", "", $mode);
                         $strMode = explode(" ", $mode);
 
-                        echo json_encode($strMode);
+//                        echo json_encode($strMode);
                         $countMode = count($strMode); //카운트 12개 까지 있음
 
                         foreach ($strMode as $key => &$value) {
@@ -281,11 +288,8 @@ try {
                 } else if (!preg_match($patternMode, $mode)) // 상관없음 필터
                 {
                     if (strpos($mode, $pattenstr) !== false) {
-//                    echo "포함되어 있습니다만...";
                         $isNotstr = 1;
-//                    echo "$mode";
                     } else {
-//                    echo "없군요.";
                         $isNotstr = 0;
                     }
 
@@ -299,34 +303,66 @@ try {
                 }
 
                 if (strlen($people) > 0 and strlen($kind) > 0 and strlen($mode) > 0) {
-                    $kindInt = 2;
-                    $modeInt = 2;
-                    $addedQuerykind = " OR kind LIKE ?";
-                    $addedQuerykindreuslt = " OR kind LIKE ?";
 
-                    while ($countKind > $kindInt) {
-                        $kindInt = ++$kindInt;
 
-                        $addedQuerykindreuslt = $addedQuerykind . $addedQuerykindreuslt;
+                    if ($isNotstr == 1)
+                    {
+//                        strNomatter($people, $strKind);
+//                        echo "countkind : $countKind";
+                        if ($countKind > 1)
+                        {
+                            $kindInt = 1;
+                            $addedQuerykind = " OR `kind` LIKE (:Kind)";
+                            $addedQuerykindreuslt = "";
+
+                            while ($countKind > $kindInt)
+                            {
+
+                                $kindInt = ++$kindInt;
+
+                                $addedQuerykindreuslt = $addedQuerykind . $addedQuerykindreuslt;
+                            }
+                        }
+
+                        $res->result = strNomatter($people, $strKind, $addedQuerykindreuslt);
+                        $res->isSuccess = true;
+                        $res->code = 206;
+                        $res->message = "가게 추천 검색 조회를 성공하였습니다";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
                     }
 
-//            echo "$addedQuerykindreuslt";
+                    if($isNotstr == 0) {
+                        $kindInt = 1;
+                        $modeInt = 1;
+                        $addedQuerykind = " OR `kind` LIKE (:Kind)";
+                        $addedQuerykindreuslt = "";
 
-                    $addedQuerymode = " OR mode LIKE ?";
-                    $addedQuerymoderesult = " OR mode LIKE ?";
+                        while ($countKind > $kindInt) {
+                            $kindInt = ++$kindInt;
 
-                    while ($countMode > $modeInt) {
-                        $modeInt = ++$modeInt;
-                        $addedQuerymoderesult = $addedQuerymode . $addedQuerymoderesult;
+                            $addedQuerykindreuslt = $addedQuerykind . $addedQuerykindreuslt;
+                        }
+
+//                        echo "query : $addedQuerykindreuslt";
+
+
+                        $addedQuerymode = " OR `Mode` LIKE :Mode";
+                        $addedQuerymoderesult = "";
+
+                        while ($countMode > $modeInt) {
+                            $modeInt = ++$modeInt;
+                            $addedQuerymoderesult = $addedQuerymode . $addedQuerymoderesult;
+                        }
+
+//                        echo "$addedQuerymoderesult";
+
+                        $res->result = getStore($people, $strKind, $addedQuerykindreuslt, $strMode, $addedQuerymoderesult);
+                        $res->isSuccess = true;
+                        $res->code = 206;
+                        $res->message = "가게 추천 검색 조회를 22성공하였습니다";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
                     }
-
-//            echo "$addedQuerymoderesult";
-
-                    $res->result = getStore($people, $strKind, $addedQuerykindreuslt, $strMode, $addedQuerymoderesult);
-//            $res->isSuccess = true;
-//            $res->code = 206;
-//            $res->message = "가게 추천 검색 조회를 성공하였습니다";
-//            echo json_encode($res, JSON_NUMERIC_CHECK);
+//
 
                 }
 //        else if (strlen($people) < 1 or strlen($kind) < 1 or  strlen($mode) < 1)
@@ -450,9 +486,46 @@ try {
             }
             else if($isintval === 1)
             {
-                echo "토큰 통과";
+                if(!preg_match($patternNum, $storenum))
+                {
+                    $res->isSuccess = false;
+                    $res->code = 212;
+                    $res->message = "숫자 형식에 맞게 가게 번호를 입력해주세요";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    return;
+                }
+
+                $res->result = storeMenu($storenum);
+                $res->isSuccess = TRUE;
+                $res->code = 211;
+                $res->message = "가게 메뉴 조회를 성공했습니다";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
             }
 
+
+            break;
+
+        case "storename":
+
+            $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
+//            echo "$jwt";
+            // jwt 유효성 검사
+            $result = isValidHeader($jwt, JWT_SECRET_KEY);
+            $isintval = $result['intval'];
+
+            if ($isintval === 0) //토큰 검증 여부
+            {
+                $res->isSuccess = FALSE;
+                $res->code = 201;
+                $res->message = "유효하지 않은 토큰입니다";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+            else if($isintval === 1)
+            {
+                //토큰 통과
+            }
 
             break;
 

@@ -25,11 +25,12 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
     $r->addRoute('GET', '/user/{userId}/reView', ['MainController', 'reView']); //마이 리뷰 조회 API
     $r->addRoute('GET', '/user/{userId}/bookMark', ['MainController', 'bookMark']); //즐겨찾기 조회 API
     $r->addRoute('GET', '/store/{storeNum}', ['MainController', 'storeDetail']); //가게 상세 API
+    $r->addRoute('GET', '/store/{storeNum}/reView', ['MainController', 'storeReview']); //가게 상세 리뷰 조회 API
+    $r->addRoute('GET', '/store/{storeNum}/meNu', ['MainController', 'storeMenu']); //가게 상세 메뉴 조회 API
 
     $r->addRoute('GET', '/store', ['MainController', 'searchingStore']); //마이차차차 추천 검색 API
 
-    $r->addRoute('GET', '/store/{storeNum}/reView', ['MainController', 'storeReview']); //가게 상세 리뷰 조회 API
-    $r->addRoute('GET', '/store/{storeNum}/meNu', ['MainController', 'storeMenu']); //가게 상세 메뉴 조회 API
+    $r->addRoute('GET', '/storename', ['MainController', 'storename']); //가게 상세 메뉴 조회 API
 
 
     $r->addRoute('GET', '/test', ['IndexController', 'test']);
