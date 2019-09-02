@@ -23,7 +23,7 @@ try {
             // jwt 유효성 검사
             $result = isValidHeader($jwt, JWT_SECRET_KEY);
             $isintval = $result['intval'];
-//            $userid = $result['userid'];
+            $userid = $result['userid'];
 
             if ($isintval === 0) //토큰 검증 여부
             {
@@ -33,16 +33,43 @@ try {
                 echo json_encode($res, JSON_NUMERIC_CHECK);
                 addErrorLogs($errorLogs, $res, $req);
                 return;
-            } else if ($isintval === 1) {
-//                echo "$intval , $userid";
-                $usernum = convert_to_num($vars["userId"]);
-//                echo "$usernum";
-                $res->result = myPage($usernum); // 토큰 발행 api
-                $res->isSuccess = TRUE;
-                $res->code = 115;
-                $res->message = "마이페이지 조회를 성공했습니다";
-                echo json_encode($res, JSON_NUMERIC_CHECK);
+            }
+            else if ($isintval === 1)
+            {
 
+                $testId = $vars["userId"];
+
+                if ($testId == $userid)
+                {
+                    $isIdexist = isIdexist($testId);
+                }
+                else
+                {
+                    $res->isSuccess = FALSE;
+                    $res->code = 399;
+                    $res->message = "유효하지 않은 아이디입니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    return;
+                }
+
+                if($isIdexist == 1)
+                {
+                        $usernum = convert_to_num($vars["userId"]);
+                        $res->result = myPage($usernum); // 토큰 발행 api
+                        $res->isSuccess = TRUE;
+                        $res->code = 115;
+                        $res->message = "마이페이지 조회를 성공했습니다";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+
+                }
+                else
+                {
+                        $res->isSuccess = FALSE;
+                        $res->code = 399;
+                        $res->message = "유효하지 않은 아이디입니다";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;
+                }
             }
             break;
 
@@ -54,7 +81,7 @@ try {
             // jwt 유효성 검사
             $result = isValidHeader($jwt, JWT_SECRET_KEY);
             $isintval = $result['intval'];
-//            $userid = $result['userid'];
+            $userid = $result['userid'];
 
             $name = $req->name;
             $writing = $req->writing;
@@ -74,12 +101,35 @@ try {
                 echo json_encode($res, JSON_NUMERIC_CHECK);
                 addErrorLogs($errorLogs, $res, $req);
                 return;
-            } else if ($isintval === 1) {
-                $usernum = convert_to_num($vars["userId"]);
-//                echo "$usernum";
-//                echo "토큰검증 성공";
+            } else if ($isintval === 1)
+            {
 
-//                echo "$name, $writing, $email, $phone";
+                $testId = $vars["userId"];
+
+                if ($testId == $userid)
+                {
+                    $isIdexist= isIdexist($testId);
+
+                    if($isIdexist == 0)
+                    {
+                        $res->isSuccess = FALSE;
+                        $res->code = 399;
+                        $res->message = "유효하지 않은 아이디입니다";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;
+                    }
+                }
+                else
+                {
+                    $res->isSuccess = FALSE;
+                    $res->code = 399;
+                    $res->message = "유효하지 않은 아이디입니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    return;
+                }
+
+                $usernum = convert_to_num($testId);
+
                 if (strlen($usernum) > 0 and strlen($name) > 0 and strlen($writing) > 0 and strlen($email) > 0 and strlen($phone) > 0) {
                     if (preg_match($patternName, $name)) {
                         $res->isSuccess = false;
@@ -135,6 +185,7 @@ try {
             // jwt 유효성 검사
             $result = isValidHeader($jwt, JWT_SECRET_KEY);
             $isintval = $result['intval'];
+            $userid = $result['userid'];
 
             if ($isintval === 0) //토큰 검증 여부
             {
@@ -144,10 +195,36 @@ try {
                 echo json_encode($res, JSON_NUMERIC_CHECK);
                 addErrorLogs($errorLogs, $res, $req);
                 return;
-            } else if ($isintval === 1) {
+            } else if ($isintval === 1)
+            {
                 $patternId = "/^[a-z0-9_]{4,10}$/"; // 4자 이상 10자 이하 영소문자/숫자/_ 허용
-                $userid = ($vars['userId']);
-                if (!preg_match($patternId, $userid)) {
+
+                $testId = $vars["userId"];
+
+                if ($testId == $userid)
+                {
+                    $isIdexist= isIdexist($testId);
+
+                    if($isIdexist == 0)
+                    {
+                        $res->isSuccess = FALSE;
+                        $res->code = 399;
+                        $res->message = "유효하지 않은 아이디입니다";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;
+                    }
+                }
+                else
+                {
+                    $res->isSuccess = FALSE;
+                    $res->code = 399;
+                    $res->message = "유효하지 않은 아이디입니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    return;
+                }
+
+                if (!preg_match($patternId, $userid))
+                {
                     $res->isSuccess = FALSE;
                     $res->code = 203;
                     $res->message = "영/소문자,숫자 조합 4자리 이상 10자리 이하로 아이디를 입력하세요";
@@ -155,9 +232,8 @@ try {
                     addErrorLogs($errorLogs, $res, $req);
                     return;
                 }
-                $usernum = convert_to_num($userid);
-//                echo "$usernum";
-//                echo "토큰검증 성공";
+
+                $usernum = convert_to_num($testId);
                 $res->result = myReview($usernum); // 토큰 발행 api
                 $res->isSuccess = TRUE;
                 $res->code = 202;
@@ -175,6 +251,7 @@ try {
             // jwt 유효성 검사
             $result = isValidHeader($jwt, JWT_SECRET_KEY);
             $isintval = $result['intval'];
+            $userid = $result['userid'];
 
             if ($isintval === 0) //토큰 검증 여부
             {
@@ -184,9 +261,34 @@ try {
                 echo json_encode($res, JSON_NUMERIC_CHECK);
                 addErrorLogs($errorLogs, $res, $req);
                 return;
-            } else if ($isintval === 1) {
+            } else if ($isintval === 1)
+            {
                 $patternId = "/^[a-z0-9_]{4,10}$/"; // 4자 이상 10자 이하 영소문자/숫자/_ 허용
-                $userid = ($vars['userId']);
+
+                $testId = $vars["userId"];
+
+                if ($testId == $userid)
+                {
+                    $isIdexist= isIdexist($testId);
+
+                    if($isIdexist == 0)
+                    {
+                        $res->isSuccess = FALSE;
+                        $res->code = 399;
+                        $res->message = "유효하지 않은 아이디입니다";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;
+                    }
+                }
+                else
+                {
+                    $res->isSuccess = FALSE;
+                    $res->code = 399;
+                    $res->message = "유효하지 않은 아이디입니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    return;
+                }
+
                 if (!preg_match($patternId, $userid)) {
                     $res->isSuccess = FALSE;
                     $res->code = 205;
@@ -195,9 +297,7 @@ try {
                     addErrorLogs($errorLogs, $res, $req);
                     return;
                 }
-                $usernum = convert_to_num($userid);
-//                echo "$usernum";
-//                echo "토큰검증 성공";
+                $usernum = convert_to_num($testId);
                 $res->result = mybookMark($usernum); // 토큰 발행 api
                 $res->isSuccess = TRUE;
                 $res->code = 204;
@@ -400,6 +500,7 @@ try {
             }
             else if($isintval === 1)
             {
+
                 if(!preg_match($patternNum, $storenum))
                 {
                     $res->isSuccess = false;
@@ -409,11 +510,24 @@ try {
                     return;
                 }
 
-                $res->result =  storeDetail($storenum); // 토큰 발행 api
-                $res->isSuccess = TRUE;
-                $res->code = 207;
-                $res->message = "가게 상세 조회를 성공했습니다";
-                echo json_encode($res, JSON_NUMERIC_CHECK);
+                $isNotexist = isStoreexist($storenum); //여기부터
+
+                if($isNotexist == 1)
+                {
+                    $res->result =  storeDetail($storenum);
+                    $res->isSuccess = TRUE;
+                    $res->code = 207;
+                    $res->message = "가게 상세 조회를 성공했습니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                }
+                else
+                {
+                    $res->isSuccess = false;
+                    $res->code = 499;
+                    $res->message = "유효한 가게번호가 아닙니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    return;
+                }
 
             }
 
@@ -451,13 +565,26 @@ try {
                     echo json_encode($res, JSON_NUMERIC_CHECK);
                     return;
                 }
-//                $res =  storeReview($storenum);
 
-                $res->result = storeReview($storenum);
-                $res->isSuccess = TRUE;
-                $res->code = 209;
-                $res->message = "가게 리뷰 조회를 성공했습니다";
-                echo json_encode($res, JSON_NUMERIC_CHECK);
+                $isNotexist = isStoreexist($storenum);
+//                $res =  storeReview($storenum);
+                if($isNotexist == 1)
+                {
+                    $res->result = storeReview($storenum);
+                    $res->isSuccess = TRUE;
+                    $res->code = 209;
+                    $res->message = "가게 리뷰 조회를 성공했습니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                }
+                else
+                {
+                    $res->isSuccess = false;
+                    $res->code = 499;
+                    $res->message = "유효한 가게번호가 아닙니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    return;
+                }
+
 
             }
 
@@ -495,17 +622,32 @@ try {
                     return;
                 }
 
-                $res->result = storeMenu($storenum);
-                $res->isSuccess = TRUE;
-                $res->code = 211;
-                $res->message = "가게 메뉴 조회를 성공했습니다";
-                echo json_encode($res, JSON_NUMERIC_CHECK);
+                $isNotexist = isStoreexist($storenum);
+
+                if($isNotexist == 1)
+                {
+                    $res->result = storeMenu($storenum);
+                    $res->isSuccess = TRUE;
+                    $res->code = 211;
+                    $res->message = "가게 메뉴 조회를 성공했습니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                }
+                else
+                {
+                    $res->isSuccess = false;
+                    $res->code = 499;
+                    $res->message = "유효한 가게번호가 아닙니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    return;
+                }
+
+
             }
 
 
             break;
 
-        case "storename":
+        case "storeName":
 
             $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
 //            echo "$jwt";
@@ -525,6 +667,321 @@ try {
             else if($isintval === 1)
             {
                 //토큰 통과
+            }
+
+            break;
+
+        case "myCha":
+//            echo "ha";
+
+            $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
+//            echo "$jwt";
+            // jwt 유효성 검사
+            $patternNum = "/^[0-9]+$/";
+            $patternHun = "/([^가-힣\x20#])/"; // 한글 띄어쓰기 특수문자
+            $result = isValidHeader($jwt, JWT_SECRET_KEY);
+            $isintval = $result['intval'];
+            $userid = $result['userid'];
+
+            $chanum = 0;
+            $storenum = $req->storenum;
+            $delete = 0;
+
+
+            if ($isintval === 0) //토큰 검증 여부
+            {
+                $res->isSuccess = FALSE;
+                $res->code = 201;
+                $res->message = "유효하지 않은 토큰입니다";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+//                addErrorLogs($errorLogs, $res, $req); //에러로그 오류
+                return;
+            }
+            else if($isintval === 1)
+            {
+                if(strlen($storenum) > 0)
+                {
+                    $testId = $vars["userId"];
+
+                    if ($testId == $userid)
+                    {
+                        $isIdexist= isIdexist($testId);
+
+                        if($isIdexist == 0)
+                        {
+                            $res->isSuccess = FALSE;
+                            $res->code = 399;
+                            $res->message = "유효하지 않은 아이디입니다";
+                            echo json_encode($res, JSON_NUMERIC_CHECK);
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        $res->isSuccess = FALSE;
+                        $res->code = 399;
+                        $res->message = "유효하지 않은 아이디입니다";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;
+                    }
+
+                    $usernum = convert_to_num($testId);
+
+//                echo "$storenum";
+                    if (!preg_match($patternNum, $storenum))
+                    {
+
+                        $res->isSuccess = false;
+                        $res->code = 216;
+                        $res->message = "숫자 형식에 맞게 가게 번호를 입력해주세요";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;
+                    }
+
+
+                    $isNotexist = chaCheck($storenum, $usernum);
+
+                    if ($isNotexist == 1) {
+                        mychachacha($chanum, $storenum, $usernum, $delete);
+                        $res->isSuccess = TRUE;
+                        $res->code = 215;
+                        $res->message = "마이차차차 저장을 성공했습니다";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                    }
+                    else if ($isNotexist == 0)
+                    {
+                        $res->isSuccess = false;
+                        $res->code = 217;
+                        $res->message = "이미 저장된 가게 입니다";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;
+                    }
+
+                }
+                else if (strlen($storenum) < 1)
+                {
+                    $res->isSuccess = false;
+                    $res->code = 299;
+                    $res->message = "모든 항목을 완전히 입력해주세요";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    return;
+                }
+            }
+
+            break;
+
+        case "getCha":
+
+            $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
+//            echo "$jwt";
+            // jwt 유효성 검사
+            $patternNum = "/^[0-9]+$/";
+            $patternHun = "/([^가-힣\x20#])/"; // 한글 띄어쓰기 특수문자
+            $result = isValidHeader($jwt, JWT_SECRET_KEY);
+            $isintval = $result['intval'];
+            $userid = $result['userid'];
+
+
+            if ($isintval === 0)
+            {
+                $res->isSuccess = FALSE;
+                $res->code = 201;
+                $res->message = "유효하지 않은 토큰입니다";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+
+            }
+            else if ($isintval === 1)
+            {
+                $testId = $vars["userId"];
+
+                if ($testId == $userid)
+                {
+                    $isIdexist= isIdexist($testId);
+
+                    if($isIdexist == 0)
+                    {
+                        $res->isSuccess = FALSE;
+                        $res->code = 399;
+                        $res->message = "유효하지 않은 아이디입니다";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;
+                    }
+                }
+                else
+                {
+                    $res->isSuccess = FALSE;
+                    $res->code = 399;
+                    $res->message = "유효하지 않은 아이디입니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    return;
+                }
+
+                $usernum = convert_to_num($testId);
+                $res->result = getcha($usernum);
+                $res->isSuccess = TRUE;
+                $res->code = 224;
+                $res->message = "마이차차차 조회를 성공했습니다";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+            }
+
+            break;
+
+        case "detailCha":
+
+            $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
+//            echo "$jwt";
+            // jwt 유효성 검사
+//            $patternNum = "/^[0-9]+$/";
+//            $patternHun = "/([^가-힣\x20#])/"; // 한글 띄어쓰기 특수문자
+            $result = isValidHeader($jwt, JWT_SECRET_KEY);
+            $isintval = $result['intval'];
+            $userid = $result['userid'];
+
+
+            $chanum = $vars["chaNum"];
+//            echo "$chanum";
+//            echo "$usernum";
+
+            if ($isintval === 0)
+            {
+                $res->isSuccess = FALSE;
+                $res->code = 201;
+                $res->message = "유효하지 않은 토큰입니다";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+            else if ($isintval === 1)
+            {
+                $testId = $vars["userId"];
+
+                if ($testId == $userid)
+                {
+                    $isIdexist= isIdexist($testId);
+
+                    if($isIdexist == 0)
+                    {
+                        $res->isSuccess = FALSE;
+                        $res->code = 399;
+                        $res->message = "유효하지 않은 아이디입니다";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;
+                    }
+                }
+                else
+                {
+                    $res->isSuccess = FALSE;
+                    $res->code = 399;
+                    $res->message = "유효하지 않은 아이디입니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    return;
+                }
+
+                $usernum = convert_to_num($userid);
+
+                $isNotexist = isChaexist($chanum, $usernum);
+
+                if($isNotexist == 1)
+                {
+                    $res->result = detailCha($chanum);
+                    $res->isSuccess = TRUE;
+                    $res->code = 211;
+                    $res->message = "마이차차차 상세 조회를 성공했습니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                }
+                else
+                {
+                    $res->isSuccess = false;
+                    $res->code = 499;
+                    $res->message = "유효한 마이차차차 가게번호가 아닙니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    return;
+                }
+            }
+
+            break;
+
+        case "deleteCha":
+
+            $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
+//            echo "$jwt";
+            // jwt 유효성 검사
+//            $patternNum = "/^[0-9]+$/";
+//            $patternHun = "/([^가-힣\x20#])/"; // 한글 띄어쓰기 특수문자
+            $result = isValidHeader($jwt, JWT_SECRET_KEY);
+            $isintval = $result['intval'];
+            $userid = $result['userid'];
+            $chanum = $vars["chaNum"];
+//            echo "$chanum";
+//            echo "$usernum";
+            if ($isintval === 0)
+            {
+                $res->isSuccess = FALSE;
+                $res->code = 201;
+                $res->message = "유효하지 않은 토큰입니다";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+
+            }
+            else if ($isintval === 1)
+            {
+                $testId = $vars["userId"];
+
+                if ($testId == $userid)
+                {
+                    $isIdexist= isIdexist($testId);
+
+                    if($isIdexist == 0)
+                    {
+                        $res->isSuccess = FALSE;
+                        $res->code = 399;
+                        $res->message = "유효하지 않은 아이디입니다";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;
+                    }
+                }
+                else
+                {
+                    $res->isSuccess = FALSE;
+                    $res->code = 399;
+                    $res->message = "유효하지 않은 아이디입니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    return;
+                }
+
+                $isNotexist = isStoreexist($chanum);
+
+                if($isNotexist == 0)
+                {
+                    $res->isSuccess = false;
+                    $res->code = 499;
+                    $res->message = "유효한 마이차차차 가게번호가 아닙니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    return;
+                }
+
+
+                $result = chaExist($chanum);
+                if ($result == 0)
+                {
+
+//                echo "토큰 유효";
+                    deleteCha($chanum);
+                    $res->isSuccess = TRUE;
+                    $res->code = 225;
+                    $res->message = "마이차차차 삭제를 성공했습니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                }
+                else if ($result == 1)
+                {
+                    $res->isSuccess = FALSE;
+                    $res->code = 226;
+                    $res->message = "이미 삭제 된 마이차차차 입니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    return;
+                }
             }
 
             break;

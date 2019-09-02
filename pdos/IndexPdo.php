@@ -181,23 +181,95 @@ function  getStore($speople, $strKind, $addedQuerykindreuslt, $strMode, $addedQu
     return $res;
 }
 
-function test($people)
+function chaCheck($storenum, $usernum)
 {
     $pdo = pdoSqlConnect();
-    $query = "SELECT * FROM store where people = :people;";
+    $query = "select deletenum from mychachacha where storenum = ? and usernum = ?";
 
     $st = $pdo->prepare($query);
-//        $st->execute([$param,$param]);
-    $st->bindParam(':people' , $people, PDO::PARAM_INT);
-//    $st -> bindParam(1, $_GET['image_id'], PDO::PARAM_INT);
-    $st->execute();
+    $st -> execute([$storenum, $usernum]);
     $st->setFetchMode(PDO::FETCH_ASSOC);
     $res = $st->fetchAll();
+    $st = null;
+    $pdo = null;
+    return intval($res[0]["deletenum"]);
+}
 
+function mychachacha($chanum, $storenum, $usernum, $delete)
+{
+    $delete = 0;
+    $pdo = pdoSqlConnect();
+    $query = "INSERT INTO mychachacha (chanum, storenum, usernum, deletenum) VALUES (?,?,?,?);";
+//    echo "$query";
+
+    $st = $pdo->prepare($query);
+    $st->execute([$chanum, $storenum, $usernum, $delete]);
+
+    $st = null;
+    $pdo = null;
+}
+
+function getcha($usernum)
+{
+    $deletenum = 0;
+
+    $pdo = pdoSqlConnect();
+    $query = "select chanum, storename, imageurl from mychachacha inner join store on mychachacha.storenum = store.storenum where usernum = ?  and deletenum = ?;";
+
+    $st = $pdo->prepare($query);
+    $st -> execute([$usernum, $deletenum]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
     $st = null;
     $pdo = null;
 
     return $res;
+
+}
+
+function chaExist($chanum)
+{
+    $pdo = pdoSqlConnect();
+    $query = "select deletenum from mychachacha where  chanum = ?;";
+
+    $st = $pdo->prepare($query);
+    $st -> execute([$chanum]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st = null;
+    $pdo = null;
+
+    return intval($res[0]["deletenum"]);
+}
+
+function detailCha($chanum)
+{
+    $pdo = pdoSqlConnect();
+    $query = "";
+
+    $st = $pdo->prepare($query);
+    $st -> execute([$chanum]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st = null;
+    $pdo = null;
+
+    return intval($res[0]);
+}
+
+function deleteCha($chanum)
+{
+    $deletenum = 1;
+    $pdo = pdoSqlConnect();
+    $query = "UPDATE mychachacha  SET deletenum  = ?  WHERE chanum = ?;";
+
+    $st = $pdo->prepare($query);
+    $st -> execute([$deletenum,$chanum]);
+
+    $st = null;
+    $pdo = null;
+
+
 }
 
 function  myReview($usernum)
@@ -399,6 +471,51 @@ function testPost($name)
 //        return intval($res[0]["exist"]);
 //
 //    }
+
+function isIdexist($userId)
+{
+    $pdo = pdoSqlConnect();
+    $query = "select exists (SELECT * FROM guest WHERE userid = ?)as exist;";
+//    echo $query;
+    $st = $pdo->prepare($query);
+    $st -> execute([$userId]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st=null;
+    $pdo = null;
+
+    return intval($res[0]["exist"]);
+}
+
+function isStoreexist($storenum)
+{
+    $pdo = pdoSqlConnect();
+    $query = "select exists (SELECT * FROM store WHERE storenum = ?)as exist;";
+//    echo $query;
+    $st = $pdo->prepare($query);
+    $st -> execute([$storenum]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st=null;
+    $pdo = null;
+
+    return intval($res[0]["exist"]);
+}
+
+function isChaexist($chanum, $usernum)
+{
+    $pdo = pdoSqlConnect();
+    $query = "select exists (SELECT * FROM mychachacha WHERE chanum = ? and usernum = ?)as exist;";
+//    echo $query;
+    $st = $pdo->prepare($query);
+    $st -> execute([$chanum, $usernum]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st=null;
+    $pdo = null;
+
+    return intval($res[0]["exist"]);
+}
 
 function convert_to_num($userId)
 {
