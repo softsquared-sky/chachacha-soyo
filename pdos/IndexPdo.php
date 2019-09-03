@@ -184,8 +184,22 @@ function  getStore($speople, $strKind, $addedQuerykindreuslt, $strMode, $addedQu
 function chaCheck($storenum, $usernum)
 {
     $pdo = pdoSqlConnect();
-    $query = "select deletenum from mychachacha where storenum = ? and usernum = ?";
+    $query = "select exists(select deletenum from mychachacha where storenum = ? and usernum = ?)as exist;";
+//    echo "$query";
+    $st = $pdo->prepare($query);
+    $st -> execute([$storenum, $usernum]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st = null;
+    $pdo = null;
+    return intval($res[0]["exist"]);
+}
 
+function chaCheck2($storenum, $usernum)
+{
+    $pdo = pdoSqlConnect();
+    $query = "select deletenum from mychachacha where storenum = ? and usernum = ?";
+//    echo "$query";
     $st = $pdo->prepare($query);
     $st -> execute([$storenum, $usernum]);
     $st->setFetchMode(PDO::FETCH_ASSOC);
@@ -230,8 +244,23 @@ function getcha($usernum)
 function chaExist($chanum)
 {
     $pdo = pdoSqlConnect();
-    $query = "select deletenum from mychachacha where  chanum = ?;";
+    $query = "select exists (select deletenum from mychachacha where  chanum = ?)as exist;";
+//    echo "$query";
+    $st = $pdo->prepare($query);
+    $st -> execute([$chanum]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st = null;
+    $pdo = null;
 
+    return intval($res[0]["exist"]);
+}
+
+function isChaexist2($chanum)
+{
+    $pdo = pdoSqlConnect();
+    $query = "select deletenum from mychachacha where chanum = ?;";
+//    echo "$query";
     $st = $pdo->prepare($query);
     $st -> execute([$chanum]);
     $st->setFetchMode(PDO::FETCH_ASSOC);
@@ -244,17 +273,19 @@ function chaExist($chanum)
 
 function detailCha($chanum)
 {
+    $deletenum = 0;
     $pdo = pdoSqlConnect();
-    $query = "";
+    $query = "select storename, mode, storewriting, imageurl from mychachacha inner join store on mychachacha.storenum = store.storenum where chanum = ? and deletenum = ?;";
+    echo "$query";
 
     $st = $pdo->prepare($query);
-    $st -> execute([$chanum]);
+    $st -> execute([$chanum, $deletenum]);
     $st->setFetchMode(PDO::FETCH_ASSOC);
     $res = $st->fetchAll();
     $st = null;
     $pdo = null;
 
-    return intval($res[0]);
+    return $res[0];
 }
 
 function deleteCha($chanum)
