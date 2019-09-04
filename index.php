@@ -30,7 +30,8 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
 
     $r->addRoute('POST', '/store/recommend', ['MainController', 'searchingStore']); //마이차차차 추천 검색 API
     $r->addRoute('POST', '/store/search', ['MainController', 'storeName']); //가게 이름 지역 조회 API
-    $r->addRoute('POST', '/store/{storeNum}/review', ['MainController', 'chanamepatch']); //마이차차차 가게 리뷰 작성 API
+    $r->addRoute('POST', '/store/{storeNum}/review', ['MainController', 'mychaReview']); //마이차차차 가게 리뷰 작성 API
+
     $r->addRoute('POST', '/user/{userId}/store', ['MainController', 'myCha']); //마이차차차 저장 API
     $r->addRoute('GET', '/user/{userId}/store', ['MainController', 'getCha']); //마이차차차 전체 조회 API
     $r->addRoute('GET', '/user/{userId}/store/{chaNum}', ['MainController', 'detailCha']); //마이차차차 상세 조회 API
