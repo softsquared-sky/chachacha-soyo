@@ -23,6 +23,10 @@ try {
             // jwt 유효성 검사
             $result = isValidHeader($jwt, JWT_SECRET_KEY);
             $isintval = $result['intval'];
+            $userid = $result['userid'];
+
+
+            $usernum = convert_to_num($userid);
 
             if ($isintval === 0) //토큰 검증 여부
             {
@@ -37,61 +41,54 @@ try {
                 $people = $req->people;
                 $kind = $req->kind;
                 $mode = $req->mode;
+                $page = $req->page;
+                $size = $req->size;
 
                 $patternHun = "/([^가-힣\x20])/"; //한글 띄어쓰기 /^[가-힣\s]+$/
                 $patternHun2 = "/([^가-힣\x20#])/"; //한글 띄어쓰기 /^[가-힣\s]+$/ 한글 특수문자 통과
                 $patternMode = "/(?:#)[^\s\t\n\r]+/"; //# 뒤에 문자열
+                $pattermKind = '/[^\x{1100}-\x{11FF}\x{3130}-\x{318F}\x{AC00}-\x{D7AF}0-9a-zA-Z_ -]/u';
+                $patternNum =  "/^[0-9]+$/";
                 $pattenstr = "상관없음";
+                $isNotstr = 0;
+
 
                 if ($people < 1 or $people > 6) {
                     $res->isSuccess = false;
-                    $res->code = 116;
+                    $res->code = 250;
                     $res->message = "인원 형식에 맞춰 입력해주세요";
                     echo json_encode($res, JSON_NUMERIC_CHECK);
                     return;
                 }
 
-                if (preg_match($patternHun, $kind)) {
+                if (preg_match($pattermKind, $kind)) {
                     $res->isSuccess = false;
-                    $res->code = 116;
-                    $res->message = "가게 종류는 한글만 입력해주세요";
+                    $res->code = 251;
+                    $res->message = "가게 종류는 한글과 영어만 입력해주세요";
                     echo json_encode($res, JSON_NUMERIC_CHECK);
                     return;
                 } else {
                     $strKind = explode(" ", $kind);
-//                    echo json_encode($strKind);
                     $countKind = count($strKind);
-
-                    foreach ($strKind as $key => &$value) {
-                        $r = '%';
-                        $kindValue = $r . $value . $r;
-                        $value = $kindValue;
-                    }
 //                    echo json_encode($strKind);
                 }
 
                 if (preg_match($patternMode, $mode)) {
                     if (preg_match($patternHun2, $mode)) {
                         $res->isSuccess = false;
-                        $res->code = 116;
+                        $res->code = 252;
                         $res->message = "무드는 #태그를 붙혀 한글만 입력해주세요";
                         echo json_encode($res, JSON_NUMERIC_CHECK);
                         return;
                     } else {
                         $mode = str_replace("#", "", $mode);
-                        $strMode = explode(" ", $mode);
-
-//                        echo json_encode($strMode);
-                        $countMode = count($strMode); //카운트 12개 까지 있음
-
-                        foreach ($strMode as $key => &$value) {
-                            $r = '%';
-                            $modeValue = $r . $value . $r;
-                            $value = $modeValue;
-                        }
+//                        echo "$mode";
+                        $r = '%';
+                        $mode = $r.$mode.$r;
                     }
 
-                } else if (!preg_match($patternMode, $mode)) // 상관없음 필터
+                }
+                else if (!preg_match($patternMode, $mode)) // 상관없음 필터
                 {
                     if (strpos($mode, $pattenstr) !== false) {
                         $isNotstr = 1;
@@ -101,84 +98,59 @@ try {
 
                     if ($isNotstr == 0) {
                         $res->isSuccess = false;
-                        $res->code = 116;
+                        $res->code = 252;
                         $res->message = "무드는 #태그를 붙혀 한글만 입력해주세요";
                         echo json_encode($res, JSON_NUMERIC_CHECK);
                         return;
                     }
                 }
 
-                if (strlen($people) > 0 and strlen($kind) > 0 and strlen($mode) > 0) {
+                if(!preg_match($patternNum, $page))
+                {
+                    $res->isSuccess = false;
+                    $res->code = 253;
+                    $res->message = "현재 사용자의 조회를 숫자로 입력해주세요";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    return;
+                }
+
+                if(!preg_match($patternNum, $size))
+                {
+                    $res->isSuccess = false;
+                    $res->code = 254;
+                    $res->message = "출력정도의 양을 숫자로 입력해주세요";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    return;
+                }
 
 
-                    if ($isNotstr == 1)
+                if (strlen($people) > 0 and strlen($kind) > 0 and strlen($mode) > 0 and strlen($page) > 0 and strlen($size) > 0)
+                {
+                    if($isNotstr == 0)
                     {
-//                        strNomatter($people, $strKind);
-//                        echo "countkind : $countKind";
-                        if ($countKind > 1)
-                        {
-                            $kindInt = 1;
-                            $addedQuerykind = " OR `kind` LIKE (:Kind)";
-                            $addedQuerykindreuslt = "";
-
-                            while ($countKind > $kindInt)
-                            {
-
-                                $kindInt = ++$kindInt;
-
-                                $addedQuerykindreuslt = $addedQuerykind . $addedQuerykindreuslt;
-                            }
-                        }
-
-                        $res->result = strNomatter($people, $strKind, $addedQuerykindreuslt);
+                        $res->result = recommendStore($people, $strKind, $usernum, $mode, $page, $size);
                         $res->isSuccess = true;
                         $res->code = 206;
                         $res->message = "가게 추천 검색 조회를 성공하였습니다";
                         echo json_encode($res, JSON_NUMERIC_CHECK);
                     }
-
-                    if($isNotstr == 0) {
-                        $kindInt = 1;
-                        $modeInt = 1;
-                        $addedQuerykind = " OR `kind` LIKE (:Kind)";
-                        $addedQuerykindreuslt = "";
-
-                        while ($countKind > $kindInt) {
-                            $kindInt = ++$kindInt;
-
-                            $addedQuerykindreuslt = $addedQuerykind . $addedQuerykindreuslt;
-                        }
-
-//                        echo "query : $addedQuerykindreuslt";
-
-
-                        $addedQuerymode = " OR `Mode` LIKE :Mode";
-                        $addedQuerymoderesult = "";
-
-                        while ($countMode > $modeInt) {
-                            $modeInt = ++$modeInt;
-                            $addedQuerymoderesult = $addedQuerymode . $addedQuerymoderesult;
-                        }
-
-//                        echo "$addedQuerymoderesult";
-
-                        $res->result = getStore($people, $strKind, $addedQuerykindreuslt, $strMode, $addedQuerymoderesult);
+                    else if($isNotstr == 1)
+                    {
+                        $res->result = withoutMode_recommendStore($people, $strKind, $usernum, $page, $size);
                         $res->isSuccess = true;
                         $res->code = 206;
-                        $res->message = "가게 추천 검색 조회를 22성공하였습니다";
+                        $res->message = "가게 추천 검색 조회를 성공하였습니다";
                         echo json_encode($res, JSON_NUMERIC_CHECK);
                     }
-//
-
                 }
-//        else if (strlen($people) < 1 or strlen($kind) < 1 or  strlen($mode) < 1)
-//        {
-//            $res->isSuccess = false;
-//            $res->code = 109;
-//            $res->message = "모든 항목을 완전히 입력해주세요";
-//            echo json_encode($res, JSON_NUMERIC_CHECK);
-//            return;
-//        }
+                else if (strlen($people) < 1 or strlen($kind) < 1 or  strlen($mode) < 1 or strlen($page) < 1 or strlen($size) < 1)
+                {
+                    $res->isSuccess = false;
+                    $res->code = 109;
+                    $res->message = "모든 항목을 완전히 입력해주세요";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    return;
+                }
             }
 
             break;

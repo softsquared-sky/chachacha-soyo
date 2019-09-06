@@ -154,6 +154,16 @@ try {
                         return;
                     }
 
+                    $isalreadyEmail  =  emailcheckGuest($email);
+                    if ($isalreadyEmail === 1)
+                    {
+                        $res->isSuccess = false;
+                        $res->code = 102;
+                        $res->message = "기존에 있는 이메일 입니다. 다른 이메일을 입력해주세요";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;
+                    }
+
                     if (preg_match($patternPhone, $phone)) {
                         $phone = addHyphen($phone);
                         patchMypage($usernum, $name, $writing, $email, $phone);

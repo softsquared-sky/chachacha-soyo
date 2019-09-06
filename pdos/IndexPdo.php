@@ -155,51 +155,106 @@ function strNomatter($speople, $strKind, $addedQuerykindreuslt)
 
 }
 
-
-
-function searchstore($storename, $location)
+function searchstore($storename, $page, $size)
 {
+    $storename2 = $storename;
+    $r = '%';
+    $storename = $r . $storename . $r;
+    $storename2 = $r . $storename2 . $r;
+    $storename = (string)$storename;
+    $storename2 = (string)$storename2;
+    $page = (int)$page;
+    $size = (int)$size;
+
+//    echo "$page, $size";
+
     $pdo = pdoSqlConnect();
-    $query = "";
+    $query = "select distinct  storename, mode, storewriting, imageurl  from
+(select storename, mode, storewriting, imageurl, substring_index(store.address, ' ', 2 )as address from store) totaladdress inner join
+(select distinct substring_index(address, ' ', 2)as address from store where storename like ? order by address) findaddress
+on totaladdress.address = findaddress.address  where totaladdress.address = findaddress.address order by storename like ? desc limit ?,?;";
     $st = $pdo->prepare($query);
-    $st -> execute([$storename, $location]);
+    $st->bindParam(1, $storename, PDO::PARAM_STR);
+    $st->bindParam(2, $storename2, PDO::PARAM_STR);
+    $st->bindParam(3, $page, PDO::PARAM_INT);
+    $st->bindParam(4, $size, PDO::PARAM_INT);
+    $st -> execute();
+
     $st->setFetchMode(PDO::FETCH_ASSOC);
     $res = $st->fetchAll();
     $st = null;
     $pdo = null;
     return $res;
-
 }
 
-function  getStore($speople, $strKind, $addedQuerykindreuslt, $strMode, $addedQuerymoderesult)
+function  recommendStore($speople, $strKind, $usernum,  $mode, $page, $size)
 {
-
+    $page = (int)$page;
+    $size = (int)$size;
+    $deletenum = 0;
+    $question_marks = str_repeat("?,", count($strKind)-1) . "?";
     $pdo = pdoSqlConnect();
-    $query = "SELECT storename, mode, storewriting, imageurl FROM store WHERE `people` = :speople AND `kind` LIKE (:Kind) AND `mode` LIKE (:Mode)";
-    if(!empty($strKind))
-    {
-        $query = $query.$addedQuerykindreuslt;
-    }
-    $st = $pdo->prepare($query);
-    $st->bindParam(':speople' , $speople, PDO::PARAM_INT);
-    foreach ($strKind as $value)
-    {
-        $st->bindValue(':Kind', $value, PDO::PARAM_STR );
-    }
-    foreach ($strMode as $value)
-    {
-        $st->bindValue(':Mode', $value, PDO::PARAM_STR );
-    }
+    $query = "select findstore.storenum, storename, mode, storewriting, imageurl from
+(select storename, mode, storewriting, imageurl,storenum from store where people = ? and kind in($question_marks) and mode like ?) findstore inner join
+(select storenum from store where not storenum in(select distinct storenum from mychachacha where usernum = ? and deletenum = ?))
+chastore on findstore.storenum = chastore.storenum limit ?,?;";
+//    echo "$query";
 
+    $st = $pdo->prepare($query);
+    $st->bindParam(1, $speople, PDO::PARAM_INT);
+    foreach ($strKind as $k => $value)
+    {
+        $k = $k + 1;
+        $st->bindValue(($k + 1), $value);
+    }
+    $keyCount = count($strKind) + 1;
+    $st->bindParam($keyCount+1, $mode, PDO::PARAM_INT);
+    $st->bindParam($keyCount+2, $usernum, PDO::PARAM_INT);
+    $st->bindParam($keyCount+3, $deletenum, PDO::PARAM_INT);
+    $st->bindParam($keyCount+4, $page, PDO::PARAM_INT);
+    $st->bindParam($keyCount+5, $size, PDO::PARAM_INT);
     $st->execute();
     $st->setFetchMode(PDO::FETCH_ASSOC);
     $res = $st->fetchAll();
     $st = null;
     $pdo = null;
-//
+
     return $res;
 }
 
+function withoutMode_recommendStore($speople, $strKind, $usernum, $page, $size)
+{
+    $deletenum = 0;
+    $page = (int)$page;
+    $size = (int)$size;
+    $question_marks = str_repeat("?,", count($strKind)-1) . "?";
+    $pdo = pdoSqlConnect();
+    $query = "select findstore.storenum, storename, mode, storewriting, imageurl from
+(select storename, mode, storewriting, imageurl,storenum from store where people = ? and kind in($question_marks)) findstore inner join
+(select storenum from store where not storenum in(select distinct storenum from mychachacha where usernum = ? and deletenum = ?))
+chastore on findstore.storenum = chastore.storenum limit ?,?;";
+//    echo "$query";
+
+    $st = $pdo->prepare($query);
+    $st->bindParam(1, $speople, PDO::PARAM_INT);
+    foreach ($strKind as $k => $value)
+    {
+        $k = $k+1;
+        $st->bindValue(($k + 1), $value);
+    }
+    $keyCount = count($strKind) + 1;
+    $st->bindParam($keyCount+1, $usernum, PDO::PARAM_INT);
+    $st->bindParam($keyCount+2, $deletenum, PDO::PARAM_INT);
+    $st->bindParam($keyCount+3, $page, PDO::PARAM_INT);
+    $st->bindParam($keyCount+4, $size, PDO::PARAM_INT);
+    $st->execute();
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st = null;
+    $pdo = null;
+
+    return $res;
+}
 
 function chaCheck($storenum, $usernum)
 {
@@ -283,7 +338,7 @@ function detailCha($chanum)
 {
     $deletenum = 0;
     $pdo = pdoSqlConnect();
-    $query = "select storename, mode, storewriting, imageurl from mychachacha inner join store on mychachacha.storenum = store.storenum where chanum = ? and deletenum = ?;";
+    $query = "select storename, mode, storewriting, address, opentime, closstime, imageurl, phone  from mychachacha inner join store on mychachacha.storenum = store.storenum where chanum = ? and deletenum = ?;";
 
     $st = $pdo->prepare($query);
     $st -> execute([$chanum, $deletenum]);
@@ -291,6 +346,10 @@ function detailCha($chanum)
     $res = $st->fetchAll();
     $st = null;
     $pdo = null;
+
+    $phone = $res[0]['phone'];
+    $phone = addHyphen($phone);
+    $res[0]['phone'] = $phone;
 
     return $res[0];
 }
@@ -423,12 +482,7 @@ function storeReview($storenum)
     $st = null;
     $pdo = null;
 
-//    echo json_encode($res);
-//    echo json_encode($res2);
-    array_unshift($res2, $res[0]);
-//    echo json_encode($res2);
-
-    return array('reviewcount' => $res,'review' =>$res2);
+    return array('reviewcount' =>$res[0]['reviewcount'],'review' =>$res2); //안에 키값을 가져오는것
 }
 
 
@@ -541,6 +595,23 @@ function testPost($name)
 //        return intval($res[0]["exist"]);
 //
 //    }
+
+function getEmail($usernum)
+{
+    $pdo = pdoSqlConnect();
+    $query = "SELECT email FROM guest WHERE usernum = ?";
+//    echo $query;
+    $st = $pdo->prepare($query);
+    $st -> execute([$usernum]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st=null;
+    $pdo = null;
+//    echo "$res[0]['email']";
+//    echo json_encode($res[0]['email']);
+
+    return $res[0]['email'];
+}
 
 function isIdexist($userId)
 {

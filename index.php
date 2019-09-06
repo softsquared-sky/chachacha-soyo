@@ -20,20 +20,16 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
     $r->addRoute('POST', '/guest', ['IndexController', 'signupGuest']); //손님 회원가입 API
     $r->addRoute('POST', '/boss', ['IndexController', 'signupBoss']); //사장님 회원가입 API
     $r->addRoute('POST', '/token', ['IndexController', 'loginUser']); // 로그인 API post 토큰
-
     $r->addRoute('GET', '/user/{userId}', ['MypageController', 'myPage']); //마이페이지 조히 API
     $r->addRoute('PATCH', '/user/{userId}', ['MypageController', 'patchMypage']); //마이페이지 수정 API
     $r->addRoute('GET', '/user/{userId}/review', ['MypageController', 'reView']); //마이 리뷰 조회 API
     $r->addRoute('GET', '/user/{userId}/bookmark', ['MypageController', 'bookMark']); //즐겨찾기 조회 API
-
+    $r->addRoute('GET', '/stores/search', ['SearchController', 'storeName']); //가게 이름 지역 조회 API
     $r->addRoute('GET', '/store/{storeNum}', ['RecommandController', 'storeDetail']); //가게 상세 API
     $r->addRoute('GET', '/store/{storeNum}/review', ['RecommandController', 'storeReview']); //가게 상세 리뷰 조회 API
     $r->addRoute('GET', '/store/{storeNum}/menu', ['RecommandController', 'storeMenu']); //가게 상세 메뉴 조회 API
-    $r->addRoute('POST', '/store/recommend', ['RecommandController', 'searchingStore']); //마이차차차 추천 검색 API
-
-    $r->addRoute('POST', '/store/search', ['SearchControlle', 'storeName']); //가게 이름 지역 조회 API
-    $r->addRoute('POST', '/store/{storeNum}/review', ['SearchControlle', 'mychaReview']); //마이차차차 가게 리뷰 작성 API
-
+    $r->addRoute('POST', '/stores/recommend', ['RecommandController', 'searchingStore']); //마이차차차 추천 검색 API
+    $r->addRoute('POST', '/store/{chaNum}/review', ['ChaController', 'mychaReview']); //마이차차차 가게 리뷰 작성 API
     $r->addRoute('POST', '/user/{userId}/store', ['ChaController', 'myCha']); //마이차차차 저장 API
     $r->addRoute('GET', '/user/{userId}/store', ['ChaController', 'getCha']); //마이차차차 전체 조회 API
     $r->addRoute('GET', '/user/{userId}/store/{chaNum}', ['ChaController', 'detailCha']); //마이차차차 상세 조회 API
@@ -98,6 +94,7 @@ switch ($routeInfo[0]) {
                 $vars = $routeInfo[2];
                 require './controllers/IndexController.php';
                 break;
+
 //            case 'MainController':
 //                $handler = $routeInfo[1][1];
 //                $vars = $routeInfo[2];
@@ -122,10 +119,10 @@ switch ($routeInfo[0]) {
                 require './controllers/RecommandController.php';
                 break;
 
-            case 'SearchControlle':
+            case 'SearchController':
                 $handler = $routeInfo[1][1];
                 $vars = $routeInfo[2];
-                require './controllers/SearchControlle.php';
+                require './controllers/SearchController.php';
                 break;
 
 
