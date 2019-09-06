@@ -139,9 +139,11 @@ function strNomatter($speople, $strKind, $addedQuerykindreuslt)
     $st->bindParam(':speople' , $speople, PDO::PARAM_INT);
     foreach ($strKind as $value)
     {
-        $st->bindValue(':Kind', $value, PDO::PARAM_STR );
-//        echo "$value";
+        $str= implode('',$value);
     }
+    echo $str;
+
+    $st->bindValue(':Kind', $value, PDO::PARAM_STR );
 
     $st->execute();
     $st->setFetchMode(PDO::FETCH_ASSOC);
@@ -149,7 +151,24 @@ function strNomatter($speople, $strKind, $addedQuerykindreuslt)
     $st = null;
     $pdo = null;
 //
+//    return $res;
+
+}
+
+
+
+function searchstore($storename, $location)
+{
+    $pdo = pdoSqlConnect();
+    $query = "";
+    $st = $pdo->prepare($query);
+    $st -> execute([$storename, $location]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st = null;
+    $pdo = null;
     return $res;
+
 }
 
 function  getStore($speople, $strKind, $addedQuerykindreuslt, $strMode, $addedQuerymoderesult)
@@ -198,15 +217,15 @@ function chaCheck($storenum, $usernum)
     return intval($res[0]["exist"]);
 }
 
-function mychachacha($chanum, $storenum, $usernum, $delete)
+function mychachacha($chanum, $storenum, $usernum, $delete ,$chatime)
 {
     $delete = 0;
     $pdo = pdoSqlConnect();
-    $query = "INSERT INTO mychachacha (chanum, storenum, usernum, deletenum) VALUES (?,?,?,?);";
+    $query = "INSERT INTO mychachacha (chanum, storenum, usernum, deletenum , mychatime) VALUES (?,?,?,?,?);";
 //    echo "$query";
 
     $st = $pdo->prepare($query);
-    $st->execute([$chanum, $storenum, $usernum, $delete]);
+    $st->execute([$chanum, $storenum, $usernum, $delete, $chatime]);
 
     $st = null;
     $pdo = null;
@@ -293,8 +312,8 @@ function deleteCha($chanum)
 
 function existReview($usernum, $storenum)
 {
-    $pdo = pdoSqlConnect();
-    $query = "select exists (select * from review where usernum = ? and storenum = ? )as exist;";
+    $pdo = pdoSqlConnect(); //3일전에 리뷰를 쓴적이 있는지
+    $query = "select exists(SELECT * FROM review WHERE usernum = ? and storenum = ? and  reviewtime > (NOW() - INTERVAL 3 DAY))as exist;";
 //    echo "$query";
     $st = $pdo->prepare($query);
     $st -> execute([$usernum, $storenum]);
@@ -406,8 +425,10 @@ function storeReview($storenum)
 
 //    echo json_encode($res);
 //    echo json_encode($res2);
+    array_unshift($res2, $res[0]);
+//    echo json_encode($res2);
 
-    return array("reviewcount" =>  $res, "review" => $res2);
+    return array('reviewcount' => $res,'review' =>$res2);
 }
 
 
@@ -570,7 +591,7 @@ function chaexistReview($usernum, $storenum)
 {
     $deletenum = 0;
     $pdo = pdoSqlConnect();
-    $query = "select exists(SELECT * FROM mychachacha WHERE usernum = ? and storenum = ? and deletenum = ?)as exist;";
+    $query = "select exists(SELECT * FROM mychachacha WHERE usernum = ? and storenum = ? and deletenum = ? order by mychatime desc limit 1)as exist;";
 //    echo $query;
     $st = $pdo->prepare($query);
     $st -> execute([$usernum, $storenum, $deletenum]);
