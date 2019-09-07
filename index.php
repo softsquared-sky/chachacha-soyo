@@ -34,8 +34,7 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
     $r->addRoute('GET', '/user/{userId}/store', ['ChaController', 'getCha']); //마이차차차 전체 조회 API
     $r->addRoute('GET', '/user/{userId}/store/{chaNum}', ['ChaController', 'detailCha']); //마이차차차 상세 조회 API
     $r->addRoute('DELETE', '/user/{userId}/store/{chaNum}', ['ChaController', 'deleteCha']); //마이차차차 삭제 API
-
-    $r->addRoute('GET', '/test', ['IndexController', 'test']);
+    $r->addRoute('GET', '/review', ['ChaController', 'review']);
 //    $r->addRoute('POST', '/store/{storeNum}/review', ['IndexController', 'testDetail']);// 가게 리뷰 작성 API 마이차차차에 잇는 가게만 쓰게 하기
 
 //    $r->addRoute('POST', '/test', ['IndexController', 'testPost']);

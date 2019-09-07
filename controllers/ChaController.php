@@ -33,9 +33,7 @@ try {
             $result = isValidHeader($jwt, JWT_SECRET_KEY);
             $isintval = $result['intval'];
             $userid = $result['userid'];
-            $storenum = $vars["storeNum"];
             $chatime =  date("Y-m-d H:i:s");
-
             $chanum = 0;
             $storenum = $req->storenum;
             $delete = 0;
@@ -79,8 +77,8 @@ try {
                     }
 
                     $usernum = convert_to_num($testId);
+                    $userpw = convert_to_pass($usernum);
 
-//                echo "$storenum";
                     if (!preg_match($patternNum, $storenum))
                     {
 
@@ -106,13 +104,17 @@ try {
 
                     if($isNotdelete == 0)
                     {
-                        mychachacha($chanum, $storenum, $usernum, $delete, $chatime);
+                        mychachacha($chanum, $storenum, $usernum, $chatime);
                         $res->isSuccess = TRUE;
                         $res->code = 215;
                         $res->message = "마이차차차 저장을 성공했습니다";
                         $email = getEmail($usernum);
-//                        echo "$email";
+
                         try {
+
+                            $jwt = getJWToken($userid, $userpw, JWT_SECRET_KEY);
+
+                            $html = "<p>음식점 <b>리뷰 작성 인증</b> 이메일입니다.<br /><br /> 음식점 이용 후 리뷰를 남기시려면 링크를 클릭해주세요 <a href=\"http://106.10.50.207/review?jwt=$jwt&storenum=$storenum\">MyChachacha.com</a>.</p>";
 
                             // 서버세팅
                             $mail -> SMTPDebug = 2;    // 디버깅 설정
@@ -138,11 +140,11 @@ try {
 
                             // 메일 내용
                             $mail -> isHTML(true);                                               // HTML 태그 사용 여부
-                            $mail -> Subject = "[Chachacha] 음식점 인증 메일입니다.";              // 메일 제목
-                            $mail -> Body = "음식점 이용 후 3일동안 리뷰작성이 가능합니다. 하단의 링크를 클릭하시면 음식점 리뷰를 쓰실수있습니다 ";    // 메일 내용
+                            $mail -> Subject = "[Chachacha] 가게 리뷰 인증 메일입니다.";
 
-                            // Gmail로 메일을 발송하기 위해서는 CA인증이 필요하다.
-                            // CA 인증을 받지 못한 경우에는 아래 설정하여 인증체크를 해지하여야 한다.
+                            // 메일 제목
+                            $mail->Body = $html;  // Set the HTML version as the normal body
+
                             $mail -> SMTPOptions = array(
                                 "ssl" => array(
                                     "verify_peer" => false
@@ -157,7 +159,7 @@ try {
                             //        echo "Message has been sent";
 
                         } catch (\Exception $e) {
-                            //        echo "Message could not be sent. Mailer Error : ", $mail -> ErrorInfo;
+//                                    echo "Message could not be sent. Mailer Error : ", $mail -> ErrorInfo;
                         }
                         echo json_encode($res, JSON_NUMERIC_CHECK);
                     }
@@ -181,6 +183,42 @@ try {
                 }
             }
 
+            break;
+
+        case "review":
+
+//            echo "리뷰작성이 가능합니다";
+            $jwt = $_GET['jwt'];
+            $storenum = $_GET['storenum'];
+            $patternNum = "/^[0-9]+$/";
+            $result = isValidHeader($jwt, JWT_SECRET_KEY);
+            $isintval = $result['intval'];
+            $userid = $result['userid'];
+
+            if ($isintval === 0) //토큰 검증 여부
+            {
+                echo "URL ERROR";
+                return;
+            }
+            else if($isintval === 1)
+            {
+                if (!preg_match($patternNum, $storenum))
+                {
+                    echo "URL ERROR";
+                    return;
+                }
+
+                $isNotexiststore = isStoreexist($storenum);
+
+                if($isNotexiststore == 0)
+                {
+                    echo "URL ERROR";
+                    return;
+                }
+                $chanum = get_chaNum($storenum);
+                $result = confrim_email($chanum);
+                echo "success";
+            }
             break;
 
         case "getCha":
@@ -422,6 +460,7 @@ try {
             $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
             $result = isValidHeader($jwt, JWT_SECRET_KEY);
             $isintval = $result['intval'];
+
             $userid = $result['userid'];
 
             $reviewnum = 0;
@@ -441,72 +480,75 @@ try {
             }
             else if($isintval === 1)
             {
-//                if(!preg_match($patternNum, $chanum))
-//                {
-//                    $res->isSuccess = FALSE;
-//                    $res->code = 599;
-//                    $res->message = "유효하지 않은 마이차차차 번호입니다";
-//                    echo json_encode($res, JSON_NUMERIC_CHECK);
-//                    return;
-//                }
+                if(!preg_match($patternNum, $chanum))
+                {
+                    $res->isSuccess = FALSE;
+                    $res->code = 599;
+                    $res->message = "유효하지 않은 마이차차차 번호입니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    return;
+                }
+//
+                $isNotdelete = isChaexist2($chanum);
+                $usernum = convert_to_num($userid);
+                $storenum = getStorenum($chanum);
 
-//                $isNotdelete = isChaexist2($chanum);
-//                $usernum = convert_to_num($userid);
-//
-//                if($isNotdelete == 1)
-//                {
-//                    if(strlen($text) > 0  and strlen($star) > 0)
-//                    {
-////                        $isNotexistCha = chaexistReview($usernum, $storenum);
-//                        if ($isNotexistCha == 0)
-//                        {
-//                            $res->isSuccess = false;
-//                            $res->code = 297;
-//                            $res->message = "이메일 인증을 하셔야 리뷰 작성이 가능합니다";
-//                            echo json_encode($res, JSON_NUMERIC_CHECK);
-//                            return;
-//                        }
-//
-//                        $isNotexistReview = existReview($usernum, $storenum); //chanum으로 바꿔야함
-//
-//                        if($isNotexistReview == 0)
-//                        {
-//                            //이메일 인증을 해야 리뷰쓰러가기 가능
-//                            postReview($reviewnum, $usernum, $storenum, $text, $star, $reviewtime);
-//                            $res->isSuccess = TRUE;
-//                            $res->code = 222;
-//                            $res->message = "가게 리뷰 작성을 성공했습니다";
-//                            echo json_encode($res, JSON_NUMERIC_CHECK);
-//                        }
-//                        else if ($isNotexistReview == 1)
-//                        {
-//                            $res->isSuccess = false;
-//                            $res->code = 296;
-//                            $res->message = "이미 리뷰를 작성하셨습니다 새로운 리뷰를 작성하시려면 3일이후 작성해주세요";
-//                            echo json_encode($res, JSON_NUMERIC_CHECK);
-//                            return;
-//                        }
-//
-//                    }
-//                    else if(strlen($text) < 1 or strlen($star) < 1)
-//                    {
-//                        $res->isSuccess = false;
-//                        $res->code = 299;
-//                        $res->message = "모든 항목을 완전히 입력해주세요";
-//                        echo json_encode($res, JSON_NUMERIC_CHECK);
-//                        return;
-//                    }
-//
-//                }
-//                else
-//                {
-//                    $res->isSuccess = false;
-//                    $res->code = 499;
-//                    $res->message = "유효하지 않은 마이차차차 번호입니다";
-//                    echo json_encode($res, JSON_NUMERIC_CHECK);
-//                    return;
-//                }
+                if($isNotdelete == 0)
+                {
+                    if(strlen($text) > 0  and strlen($star) > 0)
+                    {
+                        $isNotexistCha = chaexistReview($usernum, $storenum);
+                        if ($isNotexistCha == 0)
+                        {
+                            $res->isSuccess = false;
+                            $res->code = 599;
+                            $res->message = "유효하지 않은 마이차차차 번호입니다";
+                            echo json_encode($res, JSON_NUMERIC_CHECK);
+                            return;
+                        }
+
+                        $isConfirm = getComfirm($chanum);
+
+                        if($isConfirm == 1)
+                        {
+                            //이메일 인증을 해야 리뷰쓰러가기 가능
+                            postReview($reviewnum, $usernum, $storenum, $text, $star, $reviewtime);
+                            $res->isSuccess = TRUE;
+                            $res->code = 222;
+                            $res->message = "가게 리뷰 작성을 성공했습니다";
+                            echo json_encode($res, JSON_NUMERIC_CHECK);
+                            restore_confirm($chanum);
+                        }
+                        else if($isConfirm == 0)
+                        {
+                            $res->isSuccess = false;
+                            $res->code = 240;
+                            $res->message = "가게 당 한번만 리뷰를 작성할 수 있습니다";
+                            echo json_encode($res, JSON_NUMERIC_CHECK);
+                            return;
+                        }
+
+                    }
+                    else if(strlen($text) < 1 or strlen($star) < 1)
+                    {
+                        $res->isSuccess = false;
+                        $res->code = 299;
+                        $res->message = "모든 항목을 완전히 입력해주세요";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;
+                    }
+
+                }
+                else
+                {
+                    $res->isSuccess = false;
+                    $res->code = 599;
+                    $res->message = "유효하지 않은 마이차차차 번호입니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    return;
+                }
             }
+
 
             break;
 

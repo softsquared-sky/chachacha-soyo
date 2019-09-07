@@ -169,8 +169,8 @@ function searchstore($storename, $page, $size)
 //    echo "$page, $size";
 
     $pdo = pdoSqlConnect();
-    $query = "select distinct  storename, mode, storewriting, imageurl  from
-(select storename, mode, storewriting, imageurl, substring_index(store.address, ' ', 2 )as address from store) totaladdress inner join
+    $query = "select distinct totaladdress.storenum,  storename, mode, storewriting, imageurl  from
+(select storenum, storename, mode, storewriting, imageurl, substring_index(store.address, ' ', 2 )as address from store) totaladdress inner join
 (select distinct substring_index(address, ' ', 2)as address from store where storename like ? order by address) findaddress
 on totaladdress.address = findaddress.address  where totaladdress.address = findaddress.address order by storename like ? desc limit ?,?;";
     $st = $pdo->prepare($query);
@@ -272,26 +272,28 @@ function chaCheck($storenum, $usernum)
     return intval($res[0]["exist"]);
 }
 
-function mychachacha($chanum, $storenum, $usernum, $delete ,$chatime)
+function mychachacha($chanum, $storenum, $usernum,$chatime)
 {
     $delete = 0;
+    $confirm = 0;
     $pdo = pdoSqlConnect();
-    $query = "INSERT INTO mychachacha (chanum, storenum, usernum, deletenum , mychatime) VALUES (?,?,?,?,?);";
+    $query = "INSERT INTO mychachacha (chanum, storenum, usernum, deletenum , mychatime, confirm) VALUES (?,?,?,?,?,?);";
 //    echo "$query";
 
     $st = $pdo->prepare($query);
-    $st->execute([$chanum, $storenum, $usernum, $delete, $chatime]);
+    $st->execute([$chanum, $storenum, $usernum, $delete, $chatime, $confirm]);
 
     $st = null;
     $pdo = null;
 }
+
 
 function getcha($usernum)
 {
     $deletenum = 0;
 
     $pdo = pdoSqlConnect();
-    $query = "select chanum, storename, imageurl from mychachacha inner join store on mychachacha.storenum = store.storenum where usernum = ?  and deletenum = ?;";
+    $query = "select chanum, store.storenum, storename, imageurl from mychachacha inner join store on mychachacha.storenum = store.storenum where usernum = ?  and deletenum = ?;";
 
     $st = $pdo->prepare($query);
     $st -> execute([$usernum, $deletenum]);
@@ -331,7 +333,7 @@ function isChaexist2($chanum)
     $st = null;
     $pdo = null;
 
-    return intval($res[0]["deletenum"]);
+    return $res[0]["deletenum"];
 }
 
 function detailCha($chanum)
@@ -369,20 +371,20 @@ function deleteCha($chanum)
 
 }
 
-function existReview($usernum, $storenum)
-{
-    $pdo = pdoSqlConnect(); //3일전에 리뷰를 쓴적이 있는지
-    $query = "select exists(SELECT * FROM review WHERE usernum = ? and storenum = ? and  reviewtime > (NOW() - INTERVAL 3 DAY))as exist;";
-//    echo "$query";
-    $st = $pdo->prepare($query);
-    $st -> execute([$usernum, $storenum]);
-    $st->setFetchMode(PDO::FETCH_ASSOC);
-    $res = $st->fetchAll();
-    $st = null;
-    $pdo = null;
-
-    return intval($res[0]["exist"]);
-}
+//function existReview($usernum, $storenum)
+//{
+//    $pdo = pdoSqlConnect(); //3일전에 리뷰를 쓴적이 있는지  실제로 시연시 30초
+//    $query = "select exists(SELECT * FROM review WHERE usernum = ? and storenum = ? and  reviewtime > (NOW() - INTERVAL 30 second ))as exist;";
+////    echo "$query";
+//    $st = $pdo->prepare($query);
+//    $st -> execute([$usernum, $storenum]);
+//    $st->setFetchMode(PDO::FETCH_ASSOC);
+//    $res = $st->fetchAll();
+//    $st = null;
+//    $pdo = null;
+//
+//    return intval($res[0]["exist"]);
+//}
 
 function postReview($reviewnum, $usernum, $storenum, $text, $star, $reviewtime)
 {
@@ -595,6 +597,65 @@ function testPost($name)
 //        return intval($res[0]["exist"]);
 //
 //    }
+function get_chaNum($storenum)
+{
+    $pdo = pdoSqlConnect();
+    $query = "SELECT chanum FROM mychachacha WHERE storenum = ? order by mychatime desc limit 1;";
+//    echo $query;
+    $st = $pdo->prepare($query);
+    $st -> execute([$storenum]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st=null;
+    $pdo = null;
+//    echo "$res[0]['email']";
+//    echo json_encode($res[0]['email']);
+
+    return $res[0]['chanum'];
+}
+
+function restore_confirm($chanum)
+{
+    $confirm = 0;
+    $pdo = pdoSqlConnect();
+    $query = "UPDATE mychachacha
+                  SET confirm = ?
+                 WHERE chanum = ?";
+
+    $st = $pdo->prepare($query);
+    $st->execute([$confirm, $chanum]);
+    $st = null;
+    $pdo = null;
+}
+
+function confrim_email($chanum)
+{
+    $confirm = 1;
+    $pdo = pdoSqlConnect();
+    $query = "UPDATE mychachacha
+                  SET confirm = ?
+                 WHERE chanum = ?";
+
+    $st = $pdo->prepare($query);
+    $st->execute([$confirm, $chanum]);
+    $st = null;
+    $pdo = null;
+}
+
+function getComfirm($chanum)
+{
+    $pdo = pdoSqlConnect();
+    $query = "SELECT confirm FROM mychachacha WHERE chanum = ?";
+//    echo $query;
+    $st = $pdo->prepare($query);
+    $st -> execute([$chanum]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st=null;
+    $pdo = null;
+
+    return $res[0]['confirm'];
+}
 
 function getEmail($usernum)
 {
@@ -674,6 +735,21 @@ function chaexistReview($usernum, $storenum)
     return intval($res[0]["exist"]);
 }
 
+function getStorenum($chanum)
+{
+    $pdo = pdoSqlConnect();
+    $query = "select storenum from mychachacha where chanum = ?;";
+//    echo $query;
+    $st = $pdo->prepare($query);
+    $st -> execute([$chanum]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st=null;
+    $pdo = null;
+
+    return $res[0]['storenum'];
+}
+
 function convert_to_num($userId)
 {
 //    echo "$userId";
@@ -688,6 +764,21 @@ function convert_to_num($userId)
     $pdo = null;
 
     return intval($res[0]["usernum"]);
+}
+
+function convert_to_pass($usernum)
+{
+    $pdo = pdoSqlConnect();
+    $query = "SELECT userpw FROM guest WHERE usernum = ?;";
+//    echo $query;
+    $st = $pdo->prepare($query);
+    $st -> execute([$usernum]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st=null;
+    $pdo = null;
+
+    return $res[0]["userpw"];
 }
 
 function isValidJWToken($userid, $userpw)
