@@ -166,6 +166,10 @@ try {
             // jwt 유효성 검사
             $result = isValidHeader($jwt, JWT_SECRET_KEY);
             $isintval = $result['intval'];
+            $userid = $result['userid'];
+
+            $usernum = convert_to_num($userid);
+
 
             if ($isintval === 0) //토큰 검증 여부
             {
@@ -192,7 +196,7 @@ try {
 
                 if($isNotexist == 1)
                 {
-                    $res->result =  storeDetail($storenum);
+                    $res->result =  storeDetail($usernum, $storenum);
                     $res->isSuccess = TRUE;
                     $res->code = 207;
                     $res->message = "가게 상세 조회를 성공했습니다";
@@ -320,6 +324,89 @@ try {
                 }
             }
             
+            break;
+
+        case "storeBookmark":
+
+            $storenum = $vars["storeNum"];
+
+            $patternNum = "/^[0-9]+$/";
+
+            $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
+//            echo "$jwt";
+            // jwt 유효성 검사
+            $result = isValidHeader($jwt, JWT_SECRET_KEY);
+            $isintval = $result['intval'];
+            $userid = $result['userid'];
+//            echo "$userid";
+            $usernum = convert_to_num($userid);
+//            echo "$usernum";
+
+            if ($isintval === 0) //토큰 검증 여부
+            {
+                $res->isSuccess = FALSE;
+                $res->code = 201;
+                $res->message = "유효하지 않은 토큰입니다";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+            else if($isintval === 1)
+            {
+                if(!preg_match($patternNum, $storenum))
+                {
+                    $res->isSuccess = false;
+                    $res->code = 330;
+                    $res->message = "숫자 형식에 맞게 가게 번호를 입력해주세요";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    return;
+                }
+
+                $isNotexist = isStoreexist($storenum);
+
+                if($isNotexist == 1)
+                {
+                    $isnotexistMark = checkMark($usernum, $storenum); //저장되어있는지를 확인
+                    $deletenum = getDeletenum($usernum, $storenum);
+
+                    if ($isnotexistMark == 0)
+                    {
+                        postBookmark($usernum, $storenum);
+                        $res->isSuccess = TRUE;
+                        $res->code = 331;
+                        $res->message = "가게 즐겨찾기 저장을 성공했습니다";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                    }
+
+                    if ($isnotexistMark == 1)
+                    {
+                        if($deletenum == 0) //마이차차차 존재할경우
+                        {
+                            deleteMark($usernum, $storenum);
+                            $res->isSuccess = TRUE;
+                            $res->code = 332;
+                            $res->message = "가게 즐겨찾기 저장 해제를 성공했습니다";
+                            echo json_encode($res, JSON_NUMERIC_CHECK);
+                        }
+                        else if($deletenum == 1) //마이차차차 존재하지 않을 경우
+                        {
+                            resetBookmark($usernum, $storenum);
+                            $res->isSuccess = TRUE;
+                            $res->code = 331;
+                            $res->message = "가게 즐겨찾기 저장을 성공했습니다";
+                            echo json_encode($res, JSON_NUMERIC_CHECK);
+                        }
+                    }
+                }
+                else
+                {
+                    $res->isSuccess = false;
+                    $res->code = 499;
+                    $res->message = "유효한 가게번호가 아닙니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    return;
+                }
+            }
             break;
 
         case "validateJwt":

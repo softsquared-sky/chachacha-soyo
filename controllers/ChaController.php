@@ -123,7 +123,7 @@ try {
                             $mail -> Host = "smtp.naver.com";                // email 보낼때 사용할 서버를 지정
                             $mail -> SMTPAuth = true;                        // SMTP 인증을 사용함
                             $mail -> Username = "p_0_start@naver.com";    // 메일 계정
-                            $mail -> Password = "";                // 메일 비밀번호
+                            $mail -> Password = "!";                // 메일 비밀번호
                             $mail -> SMTPSecure = "ssl";                    // SSL을 사용함
                             $mail -> Port = 465;                            // email 보낼때 사용할 포트를 지정
                             $mail -> CharSet = "utf-8";                        // 문자셋 인코딩
@@ -197,14 +197,18 @@ try {
 
             if ($isintval === 0) //토큰 검증 여부
             {
-                echo "URL ERROR";
+                $st = "URL 에러 입니다";
+                $st = iconv("UTF-8", "EUC-KR", $st);
+                echo "$st";
                 return;
             }
             else if($isintval === 1)
             {
                 if (!preg_match($patternNum, $storenum))
                 {
-                    echo "URL ERROR";
+                    $st = "URL 에러 입니다";
+                    $st = iconv("UTF-8", "EUC-KR", $st);
+                    echo "$st";
                     return;
                 }
 
@@ -212,12 +216,16 @@ try {
 
                 if($isNotexiststore == 0)
                 {
-                    echo "URL ERROR";
+                    $st = "URL 에러 입니다";
+                    $st = iconv("UTF-8", "EUC-KR", $st);
+                    echo "$st";
                     return;
                 }
                 $chanum = get_chaNum($storenum);
                 $result = confrim_email($chanum);
-                echo "success";
+                $st = "인증이 완료되었습니다";
+                $st = iconv("UTF-8", "EUC-KR", $st);
+                echo "$st";
             }
             break;
 
@@ -517,13 +525,12 @@ try {
                             $res->code = 222;
                             $res->message = "가게 리뷰 작성을 성공했습니다";
                             echo json_encode($res, JSON_NUMERIC_CHECK);
-                            restore_confirm($chanum);
                         }
                         else if($isConfirm == 0)
                         {
                             $res->isSuccess = false;
                             $res->code = 240;
-                            $res->message = "가게 당 한번만 리뷰를 작성할 수 있습니다";
+                            $res->message = "이메일이 인증이 안되었습니다";
                             echo json_encode($res, JSON_NUMERIC_CHECK);
                             return;
                         }

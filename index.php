@@ -27,6 +27,7 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
     $r->addRoute('GET', '/stores/search', ['SearchController', 'storeName']); //가게 이름 지역 조회 API
     $r->addRoute('GET', '/store/{storeNum}', ['RecommandController', 'storeDetail']); //가게 상세 API
     $r->addRoute('GET', '/store/{storeNum}/review', ['RecommandController', 'storeReview']); //가게 상세 리뷰 조회 API
+    $r->addRoute('POST', '/store/{storeNum}/bookmark', ['RecommandController', 'storeBookmark']); //가게 즐겨찾기 저장 API
     $r->addRoute('GET', '/store/{storeNum}/menu', ['RecommandController', 'storeMenu']); //가게 상세 메뉴 조회 API
     $r->addRoute('POST', '/stores/recommend', ['RecommandController', 'searchingStore']); //마이차차차 추천 검색 API
     $r->addRoute('POST', '/store/{chaNum}/review', ['ChaController', 'mychaReview']); //마이차차차 가게 리뷰 작성 API
@@ -34,6 +35,7 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
     $r->addRoute('GET', '/user/{userId}/store', ['ChaController', 'getCha']); //마이차차차 전체 조회 API
     $r->addRoute('GET', '/user/{userId}/store/{chaNum}', ['ChaController', 'detailCha']); //마이차차차 상세 조회 API
     $r->addRoute('DELETE', '/user/{userId}/store/{chaNum}', ['ChaController', 'deleteCha']); //마이차차차 삭제 API
+    $r->addRoute('DELETE', '/user/{userId}/review/{reviewNum}', ['MypageController', 'deleteReview']); //마이차차차 리뷰 삭제 API
     $r->addRoute('GET', '/review', ['ChaController', 'review']);
 //    $r->addRoute('POST', '/store/{storeNum}/review', ['IndexController', 'testDetail']);// 가게 리뷰 작성 API 마이차차차에 잇는 가게만 쓰게 하기
 

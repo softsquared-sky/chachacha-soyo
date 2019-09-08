@@ -196,6 +196,9 @@ try {
             $result = isValidHeader($jwt, JWT_SECRET_KEY);
             $isintval = $result['intval'];
             $userid = $result['userid'];
+            $page = $_GET['page'];
+            $size = $_GET['size'];
+//            $reviewnum = $vars['reviewNum'];
 
             if ($isintval === 0) //토큰 검증 여부
             {
@@ -244,7 +247,7 @@ try {
                 }
 
                 $usernum = convert_to_num($testId);
-                $res->result = myReview($usernum); // 토큰 발행 api
+                $res->result = myReview($usernum, $page, $size); // 토큰 발행 api
                 $res->isSuccess = TRUE;
                 $res->code = 202;
                 $res->message = "마이리뷰 조회를 성공했습니다";
@@ -299,7 +302,8 @@ try {
                     return;
                 }
 
-                if (!preg_match($patternId, $userid)) {
+                if (!preg_match($patternId, $userid))
+                {
                     $res->isSuccess = FALSE;
                     $res->code = 205;
                     $res->message = "영/소문자,숫자 조합 4자리 이상 10자리 이하로 아이디를 입력하세요";
@@ -316,6 +320,79 @@ try {
 
             }
 
+            break;
+
+        case "deleteReview":
+
+            $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
+//            echo "$jwt";
+            // jwt 유효성 검사
+            $result = isValidHeader($jwt, JWT_SECRET_KEY);
+            $isintval = $result['intval'];
+            $userid = $result['userid'];
+            $reviewnum = $vars['reviewNum'];
+
+            if ($isintval === 0) //토큰 검증 여부
+            {
+                $res->isSuccess = FALSE;
+                $res->code = 201;
+                $res->message = "유효하지 않은 토큰입니다";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            } else if ($isintval === 1) {
+                $patternId = "/^[a-z0-9_]{4,10}$/"; // 4자 이상 10자 이하 영소문자/숫자/_ 허용
+
+                $testId = $vars["userId"];
+
+                if ($testId == $userid)
+                {
+                    $isIdexist = isIdexist($testId);
+
+                    if ($isIdexist == 0) {
+                        $res->isSuccess = FALSE;
+                        $res->code = 399;
+                        $res->message = "유효하지 않은 아이디입니다";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;
+                    }
+                } else {
+                    $res->isSuccess = FALSE;
+                    $res->code = 399;
+                    $res->message = "유효하지 않은 아이디입니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    return;
+                }
+
+                if (!preg_match($patternId, $userid)) {
+                    $res->isSuccess = FALSE;
+                    $res->code = 205;
+                    $res->message = "영/소문자,숫자 조합 4자리 이상 10자리 이하로 아이디를 입력하세요";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    addErrorLogs($errorLogs, $res, $req);
+                    return;
+                }
+
+                $usernum = convert_to_num($userid);
+
+                $iexistReview= existReview($reviewnum);
+//                echo "$iexistReview";
+                if($iexistReview == 1)
+                {
+                    $res->isSuccess = TRUE;
+                    $res->code = 450;
+                    $res->message = "마이 리뷰 삭제를 성공했습니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                }
+                else if ($iexistReview == 0)
+                {
+                    $res->isSuccess = FALSE;
+                    $res->code = 699;
+                    $res->message = "유효하지 않은 리뷰 번호 입니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    return;
+                }
+            }
             break;
 
         case "validateJwt":
