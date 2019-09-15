@@ -125,6 +125,20 @@ function patchMypage($usernum, $name, $writing, $email, $phone)
     $pdo = null;
 }
 
+function checkemail($usernum ,$email)
+{
+
+    $pdo = pdoSqlConnect();
+    $query = "select exists(select * from guest where usernum = ? and email = ?)as exist;";
+    $st = $pdo->prepare($query);
+    $st -> execute([$usernum, $email]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st = null;
+    $pdo = null;
+
+    return $res[0]['exist'];
+}
 
 function strNomatter($speople, $strKind, $addedQuerykindreuslt)
 {
@@ -336,8 +350,10 @@ function isChaexist2($chanum)
     return $res[0]["deletenum"];
 }
 
-function detailCha($chanum)
+function detailCha($chanum, $usernum)
 {
+//    echo "cha : $chanum";
+//    echo "usernum : $usernum";
     $deletenum = 0;
     $pdo = pdoSqlConnect();
     $query = "select storename, mode, storewriting, address, opentime, closstime, imageurl, phone  from mychachacha inner join store on mychachacha.storenum = store.storenum where chanum = ? and deletenum = ?;";
@@ -353,7 +369,24 @@ function detailCha($chanum)
     $phone = addHyphen($phone);
     $res[0]['phone'] = $phone;
 
-    return $res[0];
+//    return $res[0];
+
+    $deletenum = 0;
+    $pdo = pdoSqlConnect();
+    $query = "select exists(select marknum from bookmark where usernum = ? and storenum = (select storenum from mychachacha where chanum = ?)and deletenum = ?)as isExistbook;";
+    $st = $pdo->prepare($query);
+    //    $st->execute([$param,$param, $deletenum]);
+    $st->execute([$usernum, $chanum, $deletenum]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res2 = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+//    echo json_encode($res2);
+
+//    echo json_encode($res2);
+    return array('isExistbook' =>$res2[0]['isExistbook'],'result' =>$res[0]); //안에 키값을 가져오는것
 }
 
 function deleteCha($chanum)
@@ -404,16 +437,18 @@ function postReview($reviewnum, $usernum, $storenum, $text, $star, $reviewtime, 
 function  myReview($usernum, $page, $size)
 {
 
+    $deletenum = 0;
     $page = (int)$page;
     $size = (int)$size;
     $pdo = pdoSqlConnect();
 
-    $query = "select reviewnum, storename, reviewstore.star,address, reviewstore.text  from (SELECT reviewnum, storenum, text ,star FROM review where usernum = ?) reviewstore inner join store on reviewstore.storenum =  store.storenum limit ?,?;";
+    $query = "select reviewnum, storename, reviewstore.star,address, reviewstore.text  from (SELECT reviewnum, storenum, text ,star FROM review where usernum = ? and deletenum = ?) reviewstore inner join store on reviewstore.storenum =  store.storenum limit ?,?;";
 //    echo "$query";
     $st = $pdo->prepare($query);
     $st->bindParam(1, $usernum, PDO::PARAM_INT);
-    $st->bindParam(2, $page, PDO::PARAM_INT);
-    $st->bindParam(3, $size, PDO::PARAM_INT);
+    $st->bindParam(2, $deletenum, PDO::PARAM_INT);
+    $st->bindParam(3, $page, PDO::PARAM_INT);
+    $st->bindParam(4, $size, PDO::PARAM_INT);
     $st -> execute();
     $st->setFetchMode(PDO::FETCH_ASSOC);
     $res = $st->fetchAll();
@@ -458,6 +493,7 @@ function mybookMark($usernum)
     $deletenum = 0;
     $pdo = pdoSqlConnect();
     $query = "select storename,mode, storewriting, imageurl from (SELECT storenum FROM bookmark where usernum = ? and deletenum = ?) resultstore inner join store on  resultstore.storenum = store.storenum;";
+//    echo "$query";
     $st = $pdo->prepare($query);
     //    $st->execute([$param,$param]);
     $st->execute([$usernum, $deletenum]);
@@ -487,11 +523,12 @@ function storeDetail($usernum, $storenum)
     $phone = addHyphen($phone);
     $res[0]['phone'] = $phone;
 
+    $deletenum = 0;
     $pdo = pdoSqlConnect();
-    $query = "select exists(select marknum from bookmark where usernum = ? and storenum =?)as isExistbook;";
+    $query = "select exists(select marknum from bookmark where usernum = ? and storenum =? and deletenum = ?)as isExistbook;";
     $st = $pdo->prepare($query);
-    //    $st->execute([$param,$param]);
-    $st->execute([$usernum, $storenum]);
+    //    $st->execute([$param,$param, $deletenum]);
+    $st->execute([$usernum, $storenum, $deletenum]);
     $st->setFetchMode(PDO::FETCH_ASSOC);
     $res2 = $st->fetchAll();
 
@@ -507,12 +544,13 @@ function storeDetail($usernum, $storenum)
 function storeReview($storenum)
 {
 //    $storenum2 = $storenum;
+    $deletenum = 0;
     $pdo = pdoSqlConnect();
-    $query = "select distinct count(*) as reviewcount from review where storenum = ?;";
+    $query = "select distinct count(*) as reviewcount from review where storenum = ? and deletenum = ?;";
 //    echo "$query";
     $st = $pdo->prepare($query);
     //    $st->execute([$param,$param]);
-    $st->execute([$storenum]);
+    $st->execute([$storenum, $deletenum]);
     $st->setFetchMode(PDO::FETCH_ASSOC);
     $res = $st->fetchAll();
 
@@ -521,11 +559,11 @@ function storeReview($storenum)
 
 
     $pdo = pdoSqlConnect();
-    $query = "select name,text, star from guest inner join review on guest.usernum = review.usernum where storenum = ?;";
+    $query = "select name,text, star from guest inner join review on guest.usernum = review.usernum where storenum = ? and deletenum = ?;";
 //    echo "$query";
     $st = $pdo->prepare($query);
     //    $st->execute([$param,$param]);
-    $st->execute([$storenum]);
+    $st->execute([$storenum, $deletenum]);
     $st->setFetchMode(PDO::FETCH_ASSOC);
     $res2 = $st->fetchAll();
 
@@ -550,7 +588,7 @@ function storeMenu($storenum)
     $st = null;
     $pdo = null;
 
-     $pdo = pdoSqlConnect();
+    $pdo = pdoSqlConnect();
     $query = " select menuname, menuprice from menu where storenum = ? and kindnum = 1;";
 //    echo "$query";
     $st = $pdo->prepare($query);
@@ -656,16 +694,17 @@ function getDeletenum($usernum, $storenum)
 
 function  deleteMark($usernum, $storenum)
 {
+//    echo "$usernum";
     $deletenum = 1;
     $pdo = pdoSqlConnect();
-        $query = "UPDATE bookmark
+    $query = "UPDATE bookmark
                         SET deletenum = ?
                         WHERE usernum = ? and storenum = ?";
 
-        $st = $pdo->prepare($query);
-        $st->execute([$deletenum, $usernum, $storenum]);
-        $st = null;
-        $pdo = null;
+    $st = $pdo->prepare($query);
+    $st->execute([$deletenum, $usernum, $storenum]);
+    $st = null;
+    $pdo = null;
 }
 
 function  resetBookmark($usernum, $storenum)
@@ -730,6 +769,7 @@ function  resetBookmark($usernum, $storenum)
 //    }
 function get_chaNum($storenum)
 {
+//    echo "$storenum";
     $pdo = pdoSqlConnect();
     $query = "SELECT chanum FROM mychachacha WHERE storenum = ? order by mychatime desc limit 1;";
 //    echo $query;
@@ -739,8 +779,7 @@ function get_chaNum($storenum)
     $res = $st->fetchAll();
     $st=null;
     $pdo = null;
-//    echo "$res[0]['email']";
-//    echo json_encode($res[0]['email']);
+
 
     return $res[0]['chanum'];
 }

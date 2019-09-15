@@ -323,7 +323,7 @@ try {
                     return;
                 }
             }
-            
+
             break;
 
         case "storeBookmark":

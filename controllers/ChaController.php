@@ -114,7 +114,7 @@ try {
 
                             $jwt = getJWToken($userid, $userpw, JWT_SECRET_KEY);
 
-                            $html = "<p>음식점 <b>리뷰 작성 인증</b> 이메일입니다.<br /><br /> 음식점 이용 후 리뷰를 남기시려면 링크를 클릭해주세요 <a href=\"http://106.10.50.207/review?jwt=$jwt&storenum=$storenum\">MyChachacha.com</a>.</p>";
+                            $html = "<p>음식점 <b>리뷰 작성 인증</b> 이메일입니다.<br /><br /> 음식점 이용 후 리뷰를 남기시려면 링크를 클릭해주세요 <a href=\"http://www.so-yo.info/review?jwt=$jwt&storenum=$storenum\">MyChachacha.com</a>.</p>";
 
                             // 서버세팅
                             $mail -> SMTPDebug = 2;    // 디버깅 설정
@@ -123,7 +123,7 @@ try {
                             $mail -> Host = "smtp.naver.com";                // email 보낼때 사용할 서버를 지정
                             $mail -> SMTPAuth = true;                        // SMTP 인증을 사용함
                             $mail -> Username = "p_0_start@naver.com";    // 메일 계정
-                            $mail -> Password = "!";                // 메일 비밀번호
+                            $mail -> Password = "";                // 메일 비밀번호
                             $mail -> SMTPSecure = "ssl";                    // SSL을 사용함
                             $mail -> Port = 465;                            // email 보낼때 사용할 포트를 지정
                             $mail -> CharSet = "utf-8";                        // 문자셋 인코딩
@@ -221,11 +221,13 @@ try {
                     echo "$st";
                     return;
                 }
+
                 $chanum = get_chaNum($storenum);
                 $result = confrim_email($chanum);
                 $st = "인증이 완료되었습니다";
                 $st = iconv("UTF-8", "EUC-KR", $st);
                 echo "$st";
+//                echo "$st";
             }
             break;
 
@@ -347,7 +349,7 @@ try {
                 {
                     if($isNotexist == 1)
                     {
-                        $res->result = detailCha($chanum);
+                        $res->result = detailCha($chanum, $usernum);
                         $res->isSuccess = TRUE;
                         $res->code = 227;
                         $res->message = "마이차차차 상세 조회를 성공했습니다";
@@ -519,8 +521,9 @@ try {
 
                         if($isConfirm == 1)
                         {
+                            $deletenum = 0;
                             //이메일 인증을 해야 리뷰쓰러가기 가능
-                            postReview($reviewnum, $usernum, $storenum, $text, $star, $reviewtime);
+                            postReview($reviewnum, $usernum, $storenum, $text, $star, $reviewtime, $deletenum);
                             $res->isSuccess = TRUE;
                             $res->code = 222;
                             $res->message = "가게 리뷰 작성을 성공했습니다";

@@ -54,21 +54,21 @@ try {
 
                 if($isIdexist == 1)
                 {
-                        $usernum = convert_to_num($vars["userId"]);
-                        $res->result = myPage($usernum); // 토큰 발행 api
-                        $res->isSuccess = TRUE;
-                        $res->code = 115;
-                        $res->message = "마이페이지 조회를 성공했습니다";
-                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                    $usernum = convert_to_num($vars["userId"]);
+                    $res->result = myPage($usernum); // 토큰 발행 api
+                    $res->isSuccess = TRUE;
+                    $res->code = 115;
+                    $res->message = "마이페이지 조회를 성공했습니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
 
                 }
                 else
                 {
-                        $res->isSuccess = FALSE;
-                        $res->code = 399;
-                        $res->message = "유효하지 않은 아이디입니다";
-                        echo json_encode($res, JSON_NUMERIC_CHECK);
-                        return;
+                    $res->isSuccess = FALSE;
+                    $res->code = 399;
+                    $res->message = "유효하지 않은 아이디입니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    return;
                 }
             }
             break;
@@ -130,7 +130,11 @@ try {
 
                 $usernum = convert_to_num($testId);
 
-                if (strlen($usernum) > 0 and strlen($name) > 0 and strlen($writing) > 0 and strlen($email) > 0 and strlen($phone) > 0) {
+                if (strlen($usernum) > 0 and strlen($name) > 0 and strlen($writing) > 0 and strlen($email) > 0 and strlen($phone) > 0)
+                {
+
+
+
                     if (preg_match($patternName, $name)) {
                         $res->isSuccess = false;
                         $res->code = 103;
@@ -154,7 +158,22 @@ try {
                         return;
                     }
 
+
+
+
+
+
+
                     $isalreadyEmail  =  emailcheckGuest($email);
+
+                    $ischeckEmail = checkemail($usernum, $email);
+//                    echo "$ischeckEmail";
+
+                    if($ischeckEmail == 1)
+                    {
+                        $isalreadyEmail = 0;
+                    }
+
                     if ($isalreadyEmail === 1)
                     {
                         $res->isSuccess = false;
@@ -302,8 +321,7 @@ try {
                     return;
                 }
 
-                if (!preg_match($patternId, $userid))
-                {
+                if (!preg_match($patternId, $userid)) {
                     $res->isSuccess = FALSE;
                     $res->code = 205;
                     $res->message = "영/소문자,숫자 조합 4자리 이상 10자리 이하로 아이디를 입력하세요";
@@ -379,6 +397,7 @@ try {
 //                echo "$iexistReview";
                 if($iexistReview == 1)
                 {
+                    deleteReview($reviewnum);
                     $res->isSuccess = TRUE;
                     $res->code = 450;
                     $res->message = "마이 리뷰 삭제를 성공했습니다";
